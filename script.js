@@ -691,8 +691,7 @@ function renderPhotoWall() {
     
     // 检查照片数据
     if (!config.photos || !Array.isArray(config.photos) || config.photos.length === 0) {
-        console.error("照片数据无效或为空");
-        photoWall.innerHTML = '<div class="error-message">没有找到照片数据</div>';
+        photoWall.innerHTML = '<div class="error-message">还没有照片数据哦，快快记录起来~</div>';
         return;
     }
     
