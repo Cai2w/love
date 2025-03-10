@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心动瞬间收藏馆</title>
+    <!-- 添加简约俏皮的粉色图标 -->
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjEwJSIgc3RvcC1jb2xvcj0iI2ZmYTVjOCIvPjxzdG9wIG9mZnNldD0iOTAlIiBzdG9wLWNvbG9yPSIjZmY2YTk1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9InVybCgjZ3JhZCkiLz48cGF0aCBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC44IiBkPSJNMzIsMTggTDM2LDI2IEw0NSwyNyBMMzksODMgTDMyLDM1IEwyNSw4MyBMMTksMjcgTDI4LDI2IFoiLz48Y2lyY2xlIGN4PSIzMiIgY3k9IjIzIiByPSIzIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC45Ii8+PC9zdmc+" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- 添加加载动画样式 -->
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease;
+        }
+        
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .loading-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            animation: pulse 2s infinite ease-in-out;
+        }
+        
+        /* 全新的心形加载器 */
+        .heart-loader {
+            background-color: #ff8fb1;
+            display: inline-block;
+            height: 30px;
+            margin: 0 10px;
+            position: relative;
+            top: 0;
+            transform: rotate(-45deg);
+            width: 30px;
+            animation: heartbeat 1.5s infinite ease-in-out;
+        }
+        
+        .heart-loader:before,
+        .heart-loader:after {
+            content: "";
+            background-color: #ff8fb1;
+            border-radius: 50%;
+            height: 30px;
+            position: absolute;
+            width: 30px;
+        }
+        
+        .heart-loader:before {
+            top: -15px;
+            left: 0;
+        }
+        
+        .heart-loader:after {
+            left: 15px;
+            top: 0;
+        }
+        
+        @keyframes heartbeat {
+            0% { transform: scale(0.8) rotate(-45deg); }
+            5% { transform: scale(0.85) rotate(-45deg); }
+            10% { transform: scale(0.9) rotate(-45deg); }
+            15% { transform: scale(1.0) rotate(-45deg); }
+            50% { transform: scale(0.8) rotate(-45deg); }
+            100% { transform: scale(0.8) rotate(-45deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-title">记忆正在马不停蹄地赶来~</div>
+            <div class="heart-loader"></div>
+        </div>
+    </div>
+    
+    <!-- 背景星空 -->
+    <div class="stars"></div>
+    <div class="twinkling"></div>
+    <div class="clouds"></div>
+    <div class="bg-overlay"></div>
+    <div class="bg-decoration"></div>
+    <div class="heart-decoration"></div>
+    <div class="heart-decoration"></div>
+    
+    <!-- 主页 -->
+    <section class="page page-1 active">
+        <div class="content">
+            <h1 class="love-title" id="mainTitle">心动瞬间收藏馆</h1>
+            <div class="love-time">
+                <div id="subTitle">与你同行</div>
+                <div class="timer">
+                    <span id="days">0</span> 天
+                    <span id="hours">0</span> 时
+                    <span id="minutes">0</span> 分
+                    <span id="seconds">0</span> 秒
+                </div>
+            </div>
+            <div class="scroll-tip">向下翻阅，发现更多...</div>
+        </div>
+    </section>
+    
+    <!-- 第一封情书 -->
+    <section class="page page-2">
+        <div class="content letter-content">
+            <div class="letter">
+                <h2 id="letterTitle">一封未寄出的信</h2>
+                <div id="letterContent" class="scrollable-content">
+                    <!-- 确保这个div存在且ID正确 -->
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 照片墙 -->
+    <section class="page page-3">
+        <div class="content gallery-content">
+            <div class="photo-wall" id="photoWall">
+                <!-- 照片将通过JS动态加载 -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- 心愿树 -->
+    <section class="page page-4">
+        <div class="content wish-content">
+            <div class="wish-tree">
+                <h2 id="wishTitle">许愿树</h2>
+                <p id="wishSubtitle">在这里留下一些小心思...</p>
+                <div class="wish-container scrollable-content" id="wishContainer"></div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 结尾页 -->
+    <section class="page page-5">
+        <div class="content end-content">
+            <div class="floating-heart"></div>
+            <h2 id="endingTitle">如果可以，我想和你...</h2>
+            <div id="endingSignature" class="signature">—— 一起数星星</div>
+            <div class="restart-btn" id="restartBtn">回到开始</div>
+        </div>
+    </section>
+    
+    <!-- 导航点 -->
+    <div class="pagination">
+        <span class="dot active" data-index="0"></span>
+        <span class="dot" data-index="1"></span>
+        <span class="dot" data-index="2"></span>
+        <span class="dot" data-index="3"></span>
+        <span class="dot" data-index="4"></span>
+    </div>
+    
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
