@@ -1,4 +1,3 @@
-
 // 改为使用单一声明
 let config = {};
 
@@ -185,8 +184,19 @@ function handleWheel(e) {
     }
 }
 
+// 添加检测移动设备的函数
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+           (window.innerWidth <= 768);
+}
+
 // 添加页面切换指示器函数
 function showPageChangeIndicator(isScrollingUp) {
+    // 如果是移动设备，直接返回不显示指示器
+    if (isMobileDevice()) {
+        return;
+    }
+    
     // 创建或获取指示器元素
     let indicator = document.getElementById('pageChangeIndicator');
     if (!indicator) {
