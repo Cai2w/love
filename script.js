@@ -1317,15 +1317,15 @@ const musicPlayer = {
     isUserInteractingWithPlayer: false, // 标记用户是否正在与播放器交互
     playlist: [
         {
-            name: '你的第一首歌',
-            artist: '歌手名称',
+            name: 'in my imagination',
+            artist: 'Sød Ven',
             url: 'http://music.163.com/song/media/outer/url?id=1921752479.mp3'
         },
         // 可以添加更多歌曲
         {
-            name: '示例歌曲2',
-            artist: '示例歌手2',
-            url: 'http://music.163.com/song/media/outer/url?id=1921752479.mp3'
+            name: 'A Thousand Years',
+            artist: 'Christina Perri',
+            url: 'http://music.163.com/song/media/outer/url?id=28122609.mp3'
         }
     ],
     
