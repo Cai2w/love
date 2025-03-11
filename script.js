@@ -1,14 +1,3 @@
-// 添加在script.js开头
-function debugPrint(section, message, data) {
-    const timestamp = new Date().toLocaleTimeString();
-    console.log(`[${timestamp}][${section}] ${message}`, data || '');
-    
-    // 在页面显示调试信息（可选，正式版可删除）
-    const debugElem = document.createElement('div');
-    debugElem.style.display = 'none'; // 设为none以隐藏调试信息
-    debugElem.innerHTML = `[${section}] ${message}`;
-    document.body.appendChild(debugElem);
-}
 
 // 改为使用单一声明
 let config = {};
@@ -34,13 +23,10 @@ function initConfig() {
 // 添加状态标志，防止重复渲染
 let contentRendered = false;
 let photosRendered = false;
-let wishesRendered = false;
 
 // 添加一个标志，记录许愿树是否已经初始化过
 let wishTreeInitialized = false;
 
-// 添加全局变量跟踪用户交互
-let userInteracted = false;
 
 // 页面控制
 let currentPage = 0;
@@ -63,34 +49,6 @@ const SCROLLABLE_SELECTORS = [
     '.photo-wall',
     '.gallery-content'
 ];
-
-// 是否在可滚动区域内
-function isInsideScrollableArea(target) {
-    // 首先检查元素自身是否可滚动
-    if (isElementScrollable(target)) {
-        return true;
-    }
-    
-    // 检查是否在可滚动区域内
-    let currentNode = target;
-    while (currentNode && currentNode !== document.body) {
-        // 检查是否有overflow样式且内容超出
-        if (isElementScrollable(currentNode)) {
-            return true;
-        }
-        
-        // 检查是否匹配可滚动选择器
-        if (SCROLLABLE_SELECTORS.some(selector => 
-            currentNode.matches && currentNode.matches(selector)
-        )) {
-            return true;
-        }
-        
-        currentNode = currentNode.parentElement;
-    }
-    
-    return false;
-}
 
 // 检查元素是否可滚动
 function isElementScrollable(element) {
@@ -465,52 +423,6 @@ function handleTouchEnd(e) {
     isTouchScrolling = false;
     touchBoundaryReached = false;
     consecutiveTouchMoves = 0;
-}
-
-// 修复移除文档点击处理器的函数
-function removeDocumentClickHandler() {
-    // 不再尝试引用未定义的 documentClickHandler
-    
-    // 添加阻止页面点击导致翻页的逻辑
-    document.body.addEventListener('click', function(e) {
-        // 阻止点击事件冒泡到可能引起页面切换的处理器
-        // 但允许交互元素的点击正常工作
-        
-        // 允许点击交互元素
-        const interactiveElements = [
-            'A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 
-            'LABEL', 'AUDIO', 'VIDEO', '.music-player', 
-            '.photo-card', '.wish-item', '.nav-dot'
-        ];
-        
-        // 检查是否点击了交互元素
-        let isInteractive = false;
-        let target = e.target;
-        
-        while (target && target !== document.body) {
-            // 检查标签名
-            if (interactiveElements.includes(target.tagName)) {
-                isInteractive = true;
-                break;
-            }
-            
-            // 检查类名
-            for (const selector of interactiveElements) {
-                if (selector.startsWith('.') && target.classList.contains(selector.substring(1))) {
-                    isInteractive = true;
-                    break;
-                }
-            }
-            
-            if (isInteractive) break;
-            target = target.parentElement;
-        }
-        
-        // 只有在点击非交互元素时阻止事件
-        if (!isInteractive) {
-            e.stopPropagation();
-        }
-    }, true);
 }
 
 // 或者，我们可以替换整个函数为更简单的方法
