@@ -618,16 +618,14 @@ function renderPhotoWall() {
     }
     
     console.log("找到 " + config.photos.length + " 张照片，开始渲染");
-    
-    // 检测是否为移动设备
-    const isMobile = window.innerWidth <= 768;
+
     
     // 创建照片元素
     config.photos.forEach((photo, index) => {
         // 创建照片容器
         const photoCard = document.createElement('div');
         photoCard.className = 'photo-card';
-        photoCard.style.animationDelay = `${index * (isMobile ? 0.1 : 0.075)}s`;
+        photoCard.style.animationDelay = `${index * (isMobileDevice() ? 0.1 : 0.075)}s`;
         
         // 添加照片装饰边框
         const photoBorder = document.createElement('div');
@@ -750,8 +748,6 @@ function renderPhotoWall() {
         viewer.appendChild(infoDiv);
         document.body.appendChild(viewer);
         
-        // 检测是否为移动设备
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
         
         // 移动端手势变量
         let startX, startY, initialPinchDistance;
@@ -789,7 +785,7 @@ function renderPhotoWall() {
         });
         
         // 触摸事件处理 - 支持拖动和捏合缩放
-        if (isMobile) {
+        if (isMobileDevice()) {
             imgContainer.addEventListener('touchstart', function(e) {
                 // 防止页面滚动
                 e.preventDefault();
@@ -888,7 +884,7 @@ function renderPhotoWall() {
         });
         
         // 为移动端添加点击事件处理
-        if (isMobile) {
+        if (isMobileDevice()) {
             // 添加移动端提示
             const zoomHint = document.createElement('div');
             zoomHint.className = 'zoom-hint';
@@ -1304,3 +1300,348 @@ function triggerWishTreeAnimation() {
         });
     }, wishes.length * 50 + 600);
 }
+
+// 音乐播放器功能
+const musicPlayer = {
+    player: document.getElementById('musicPlayer'),
+    icon: document.getElementById('musicIcon'),
+    songName: document.getElementById('songName'),
+    songArtist: document.getElementById('songArtist'),
+    playPauseBtn: document.getElementById('playPauseBtn'),
+    prevBtn: document.getElementById('prevBtn'),
+    nextBtn: document.getElementById('nextBtn'),
+    audio: new Audio(),
+    isPlaying: false,
+    currentSongIndex: 0,
+    autoHideTimer: null,
+    isUserInteractingWithPlayer: false, // 标记用户是否正在与播放器交互
+    playlist: [
+        {
+            name: '你的第一首歌',
+            artist: '歌手名称',
+            url: 'http://music.163.com/song/media/outer/url?id=1921752479.mp3'
+        },
+        // 可以添加更多歌曲
+        {
+            name: '示例歌曲2',
+            artist: '示例歌手2',
+            url: 'http://music.163.com/song/media/outer/url?id=1921752479.mp3'
+        }
+    ],
+    
+    init: function() {
+        // 确保音乐播放器的样式正确
+        this.player.style.position = 'fixed';
+        this.player.style.bottom = '20px';
+        this.player.style.right = '20px'; 
+        this.player.style.zIndex = '1000';
+        
+        // 初始化播放器
+        this.loadSong(this.currentSongIndex);
+        
+        // 确保播放器在正确位置后再显示
+        setTimeout(() => {
+            this.player.classList.add('ready');
+        }, 300);
+        
+        // 事件监听
+        this.icon.addEventListener('click', () => {
+            // 移动端上，点击图标只负责展开/收起播放器
+            if (isMobileDevice()) {
+                this.toggleExpand();
+                // 重置自动收起计时器
+                this.resetAutoHideTimer();
+            } else {
+                // 非移动端(桌面端)，点击图标仍然控制播放/暂停
+                this.togglePlay();
+            }
+        });
+        
+        // 桌面端鼠标悬停展开
+        if (!isMobileDevice()) {
+            this.player.addEventListener('mouseenter', () => {
+                this.expand();
+            });
+            
+            this.player.addEventListener('mouseleave', () => {
+                this.collapse();
+            });
+        }
+        
+        // 播放/暂停按钮
+        this.playPauseBtn.addEventListener('click', (e) => {
+            // 阻止事件冒泡，防止触发外层的点击事件
+            e.stopPropagation();
+            this.togglePlay();
+            // 重置自动收起计时器
+            if (isMobileDevice()) {
+                this.resetAutoHideTimer();
+            }
+        });
+        
+        // 上一首
+        this.prevBtn.addEventListener('click', (e) => {
+            // 阻止事件冒泡
+            e.stopPropagation();
+            this.prevSong();
+            // 重置自动收起计时器
+            if (isMobileDevice()) {
+                this.resetAutoHideTimer();
+            }
+        });
+        
+        // 下一首
+        this.nextBtn.addEventListener('click', (e) => {
+            // 阻止事件冒泡
+            e.stopPropagation();
+            this.nextSong();
+            // 重置自动收起计时器
+            if (isMobileDevice()) {
+                this.resetAutoHideTimer();
+            }
+        });
+        
+        // 添加播放器内部的其他区域点击事件，防止意外收起
+        this.songName.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isMobileDevice()) {
+                this.resetAutoHideTimer();
+            }
+        });
+        
+        this.songArtist.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isMobileDevice()) {
+                this.resetAutoHideTimer();
+            }
+        });
+        
+        // 音频事件监听
+        this.audio.addEventListener('ended', () => {
+            this.nextSong();
+        });
+        
+        this.audio.addEventListener('error', () => {
+            console.error('音频加载失败，尝试下一首');
+            this.nextSong();
+        });
+        
+        // 添加窗口调整大小时重置位置的监听器
+        window.addEventListener('resize', () => {
+            // 确保音乐播放器位置正确
+            this.player.style.position = 'fixed';
+            this.player.style.bottom = '20px';
+            this.player.style.right = '20px';
+            this.player.style.zIndex = '1000';
+        });
+        
+        // 防止其他脚本干扰样式
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    // 如果style被修改，立即恢复
+                    if (this.player.style.position !== 'fixed' || 
+                        this.player.style.bottom !== '20px' || 
+                        this.player.style.right !== '20px' ||
+                        this.player.style.zIndex !== '1000') {
+                        
+                        this.player.style.position = 'fixed';
+                        this.player.style.bottom = '20px';
+                        this.player.style.right = '20px';
+                        this.player.style.zIndex = '1000';
+                    }
+                }
+            });
+        });
+        
+        // 开始观察音乐播放器元素
+        observer.observe(this.player, { attributes: true });
+        
+        // 更智能的收起机制：监听页面滚动
+        window.addEventListener('scroll', () => {
+            if (isMobileDevice() && this.player.classList.contains('expanded') && !this.isUserInteractingWithPlayer) {
+                this.collapse();
+            }
+        }, { passive: true });
+        
+        // 监听触摸开始事件
+        this.player.addEventListener('touchstart', () => {
+            this.isUserInteractingWithPlayer = true;
+        }, { passive: true });
+        
+        // 监听触摸结束事件
+        this.player.addEventListener('touchend', () => {
+            // 延迟重置标志，以防止滚动事件立即触发收起
+            setTimeout(() => {
+                this.isUserInteractingWithPlayer = false;
+            }, 500);
+        }, { passive: true });
+        
+        // 监听页面的触摸滑动事件
+        let touchStartY = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (!isMobileDevice() || !this.player.classList.contains('expanded')) return;
+            
+            // 检查是否是在播放器区域内的触摸
+            let targetElement = e.target;
+            let isInsidePlayer = false;
+            
+            while (targetElement) {
+                if (targetElement === this.player) {
+                    isInsidePlayer = true;
+                    break;
+                }
+                targetElement = targetElement.parentElement;
+            }
+            
+            // 如果不是在播放器内部，且有明显的滑动
+            if (!isInsidePlayer && Math.abs(e.touches[0].clientY - touchStartY) > 10) {
+                this.collapse();
+            }
+        }, { passive: true });
+        
+        // 监听点击页面其他区域
+        document.addEventListener('click', (e) => {
+            if (!isMobileDevice()) return;
+            
+            // 检查点击是否在播放器外部
+            let targetElement = e.target;
+            let isInsidePlayer = false;
+            
+            while (targetElement) {
+                if (targetElement === this.player) {
+                    isInsidePlayer = true;
+                    break;
+                }
+                targetElement = targetElement.parentElement;
+            }
+            
+            // 如果点击在播放器外部，且播放器是展开状态
+            if (!isInsidePlayer && this.player.classList.contains('expanded')) {
+                this.collapse();
+            }
+        });
+        
+        // 监听页面切换
+        document.querySelectorAll('.dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                if (isMobileDevice() && this.player.classList.contains('expanded')) {
+                    this.collapse();
+                }
+            });
+        });
+    },
+    
+    resetAutoHideTimer: function() {
+        // 清除现有的计时器
+        if (this.autoHideTimer) {
+            clearTimeout(this.autoHideTimer);
+        }
+        
+        // 如果播放器是展开状态，设置新的自动收起计时器
+        if (this.player.classList.contains('expanded')) {
+            this.autoHideTimer = setTimeout(() => {
+                this.collapse();
+            }, 5000); // 5秒后自动收起
+        }
+    },
+    
+    loadSong: function(index) {
+        const song = this.playlist[index];
+        this.songName.textContent = song.name;
+        this.songArtist.textContent = song.artist;
+        this.audio.src = song.url;
+    },
+    
+    playSong: function() {
+        this.player.classList.add('playing');
+        // 更新暂停图标
+        this.playPauseBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pause-icon">
+                <line x1="6" y1="4" x2="6" y2="20"></line>
+                <line x1="18" y1="4" x2="18" y2="20"></line>
+            </svg>
+        `;
+        this.isPlaying = true;
+        this.audio.play();
+    },
+    
+    pauseSong: function() {
+        this.player.classList.remove('playing');
+        // 更新播放图标
+        this.playPauseBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="play-icon">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+        `;
+        this.isPlaying = false;
+        this.audio.pause();
+    },
+    
+    togglePlay: function() {
+        if (this.isPlaying) {
+            this.pauseSong();
+        } else {
+            this.playSong();
+        }
+    },
+    
+    nextSong: function() {
+        this.currentSongIndex++;
+        if (this.currentSongIndex >= this.playlist.length) {
+            this.currentSongIndex = 0;
+        }
+        this.loadSong(this.currentSongIndex);
+        if (this.isPlaying) {
+            this.playSong();
+        }
+    },
+    
+    prevSong: function() {
+        this.currentSongIndex--;
+        if (this.currentSongIndex < 0) {
+            this.currentSongIndex = this.playlist.length - 1;
+        }
+        this.loadSong(this.currentSongIndex);
+        if (this.isPlaying) {
+            this.playSong();
+        }
+    },
+    
+    expand: function() {
+        this.player.classList.add('expanded');
+        if (isMobileDevice()) {
+            this.resetAutoHideTimer();
+        }
+    },
+    
+    collapse: function() {
+        this.player.classList.remove('expanded');
+        if (this.autoHideTimer) {
+            clearTimeout(this.autoHideTimer);
+            this.autoHideTimer = null;
+        }
+    },
+    
+    toggleExpand: function() {
+        if (this.player.classList.contains('expanded')) {
+            this.collapse();
+        } else {
+            this.expand();
+        }
+    }
+};
+
+// 在DOM加载完成后初始化音乐播放器
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化其他功能...
+    
+    // 初始化音乐播放器
+    setTimeout(() => {
+        musicPlayer.init();
+    }, 1000); // 延迟一秒初始化，确保页面其他元素已加载
+});

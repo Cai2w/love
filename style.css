@@ -1394,3 +1394,201 @@ html, body {
         font-size: 12px;
     }
 }
+
+/* 音乐播放器样式 */
+.music-player {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(20, 20, 25, 0.75);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3), 
+                0 0 15px rgba(255, 143, 177, 0.2),
+                inset 0 0 10px rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    z-index: 1000;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 50px;
+    overflow: hidden;
+    opacity: 0; /* 初始时隐藏 */
+    visibility: hidden; /* 确保完全隐藏 */
+    transform: translateY(20px); /* 初始位置偏移，为动画做准备 */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 显示音乐播放器时的状态 */
+.music-player.ready {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.music-player.expanded {
+    width: 300px;
+    border-radius: 30px;
+    background: rgba(20, 20, 25, 0.85);
+}
+
+.music-player:not(.expanded) .player-controls,
+.music-player:not(.expanded) .song-info {
+    display: none;
+}
+
+.music-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    font-size: 18px;
+    min-width: 36px;
+    position: relative;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff8fb1, #bd9cf8);
+    margin-right: 8px;
+    box-shadow: 0 2px 8px rgba(255, 143, 177, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.music-icon:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 12px rgba(255, 143, 177, 0.4);
+}
+
+.music-icon::after {
+    content: "";
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, rgba(255, 143, 177, 0.5), rgba(189, 156, 248, 0.5));
+    border-radius: 50%;
+    z-index: -1;
+    animation: pulse-music 2s infinite;
+    opacity: 0.7;
+    filter: blur(8px);
+}
+
+@keyframes pulse-music {
+    0% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.4;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+}
+
+.song-info {
+    margin: 0 15px;
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.song-name {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+    position: relative;
+    padding-left: 2px;
+}
+
+.song-artist {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    padding-left: 2px;
+    font-weight: 300;
+}
+
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-right: 8px;
+}
+
+.control-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: relative;
+}
+
+.control-btn:hover {
+    opacity: 1;
+    color: #ff8fb1;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.play-pause-btn {
+    opacity: 0.9;
+    font-size: 16px;
+    background: linear-gradient(135deg, rgba(255, 143, 177, 0.3), rgba(189, 156, 248, 0.3));
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+}
+
+.play-pause-btn:hover {
+    opacity: 1;
+    transform: scale(1.05);
+    background: linear-gradient(135deg, rgba(255, 143, 177, 0.4), rgba(189, 156, 248, 0.4));
+}
+
+/* 添加播放进度效果 */
+.music-player.playing .music-icon::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    animation: rotate 8s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+    .music-player {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .music-player.expanded {
+        width: 280px;
+    }
+}
