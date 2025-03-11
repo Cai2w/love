@@ -1335,6 +1335,10 @@ const musicPlayer = {
         this.player.style.right = '20px'; 
         this.player.style.zIndex = '1000';
         
+        // 获取元素引用
+        this.songNameElement = document.getElementById('songName');
+        this.songArtistElement = document.getElementById('songArtist');
+        
         // 初始化播放器
         this.loadSong(this.currentSongIndex);
         
@@ -1401,14 +1405,14 @@ const musicPlayer = {
         });
         
         // 添加播放器内部的其他区域点击事件，防止意外收起
-        this.songName.addEventListener('click', (e) => {
+        this.songNameElement.addEventListener('click', (e) => {
             e.stopPropagation();
             if (isMobileDevice()) {
                 this.resetAutoHideTimer();
             }
         });
         
-        this.songArtist.addEventListener('click', (e) => {
+        this.songArtistElement.addEventListener('click', (e) => {
             e.stopPropagation();
             if (isMobileDevice()) {
                 this.resetAutoHideTimer();
@@ -1551,9 +1555,38 @@ const musicPlayer = {
     
     loadSong: function(index) {
         const song = this.playlist[index];
-        this.songName.textContent = song.name;
-        this.songArtist.textContent = song.artist;
+        
+        // 更新歌曲名和歌手名
+        const songNameElement = document.getElementById('songName');
+        const songArtistElement = document.getElementById('songArtist');
+        
+        songNameElement.textContent = song.name;
+        songArtistElement.textContent = song.artist;
+        
+        // 检查文本长度并添加滚动效果
+        this.checkTextOverflow(songNameElement);
+        this.checkTextOverflow(songArtistElement);
+        
         this.audio.src = song.url;
+    },
+    
+    checkTextOverflow: function(element) {
+        // 获取父容器
+        const container = element.closest('.text-scroll-container');
+        
+        // 重置滚动状态
+        element.classList.remove('scrolling');
+        
+        // 检查文本是否溢出容器
+        setTimeout(() => {
+            if (element.scrollWidth > container.clientWidth) {
+                // 文本溢出，添加滚动类
+                element.classList.add('scrolling');
+            } else {
+                // 文本没有溢出，移除滚动类
+                element.classList.remove('scrolling');
+            }
+        }, 100); // 延迟确保DOM已更新
     },
     
     playSong: function() {

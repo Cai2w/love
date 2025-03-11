@@ -1495,6 +1495,7 @@ html, body {
     position: relative;
 }
 
+/* 歌曲名样式 */
 .song-name {
     color: #fff;
     font-size: 14px;
@@ -1507,6 +1508,7 @@ html, body {
     padding-left: 2px;
 }
 
+/* 歌手名样式 */
 .song-artist {
     color: rgba(255, 255, 255, 0.7);
     font-size: 12px;
@@ -1591,4 +1593,57 @@ html, body {
     .music-player.expanded {
         width: 280px;
     }
+}
+
+/* 文本滚动容器 */
+.text-scroll-container {
+    white-space: nowrap;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+/* 当文本需要滚动时的样式 */
+.text-scroll {
+    display: inline-block;
+    padding-right: 20px; /* 为滚动添加一些空间 */
+    animation: none; /* 默认不滚动 */
+}
+
+/* 需要滚动时添加的类 */
+.text-scroll.scrolling {
+    animation: textScroll 8s linear infinite;
+    animation-delay: 2s; /* 延迟开始滚动 */
+}
+
+/* 文本滚动动画 */
+@keyframes textScroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* 创建渐变遮罩效果，使文本开始和结束时有淡入淡出效果 */
+.song-info::before,
+.song-info::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 15px;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.song-info::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(20, 20, 25, 0.85) 0%, rgba(20, 20, 25, 0) 100%);
+}
+
+.song-info::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(20, 20, 25, 0.85) 0%, rgba(20, 20, 25, 0) 100%);
 }
