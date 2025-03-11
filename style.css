@@ -705,7 +705,7 @@ body {
     align-items: center;
     justify-content: center;
     border-left: 3px solid transparent;
-    border-image: linear-gradient(to bottom, #ff8fb1, transparent);
+    border-image: linear-gradient(to bottom, transparent, #ff8fb1, transparent);
     border-image-slice: 1;
     text-align: center;
     overflow: hidden;
@@ -717,17 +717,17 @@ body {
 
 /* 随机边框颜色 */
 .wish:nth-child(3n+1) {
-    border-image: linear-gradient(to bottom, #ff8fb1, transparent);
+    border-image: linear-gradient(to bottom, transparent, #ff8fb1, transparent);
     border-image-slice: 1;
 }
 
 .wish:nth-child(3n+2) {
-    border-image: linear-gradient(to bottom, #bd9cf8, transparent);
+    border-image: linear-gradient(to bottom, transparent, #bd9cf8, transparent);
     border-image-slice: 1;
 }
 
 .wish:nth-child(3n+3) {
-    border-image: linear-gradient(to bottom, #98d6ea, transparent);
+    border-image: linear-gradient(to bottom, transparent, #98d6ea, transparent);
     border-image-slice: 1;
 }
 
@@ -743,7 +743,7 @@ body {
 /* 为已完成的愿望添加更梦幻的风格 */
 .wish.completed {
     background: rgba(144, 238, 144, 0.15);
-    border-image: linear-gradient(to bottom, #90ee90, transparent);
+    border-image: linear-gradient(to bottom, transparent, #90ee90, transparent);
     border-image-slice: 1;
     position: relative;
 }
