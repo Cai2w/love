@@ -89,6 +89,11 @@ var siteConfig = {
                 name: 'in my imagination',
                 artist: 'Sød Ven',
                 url: 'https://music.163.com/song/media/outer/url?id=1921752479.mp3'
+            },
+            {
+                name: '小さな恋のうた',
+                artist: 'BENI',
+                url: 'https://music.163.com/song/media/outer/url?id=25941745.mp3'
             }
         ]
     }
