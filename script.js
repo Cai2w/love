@@ -1351,6 +1351,14 @@ const musicPlayer = {
         // 确保播放器在正确位置后再显示
         setTimeout(() => {
             this.player.classList.add('ready');
+            
+            // 在播放器变为可见状态后再次检查文本溢出
+            // 这确保了页面首次加载时就能正确处理文本溢出
+            setTimeout(() => {
+                this.checkTextOverflow(this.songNameElement);
+                this.checkTextOverflow(this.songArtistElement);
+            }, 300); // 添加延迟确保DOM完全渲染
+            
         }, 300);
         
         // 事件监听
@@ -1577,22 +1585,39 @@ const musicPlayer = {
     },
     
     checkTextOverflow: function(element) {
+        // 添加错误处理
+        if (!element) return;
+        
         // 获取父容器
         const container = element.closest('.text-scroll-container');
+        if (!container) return;
         
         // 重置滚动状态
         element.classList.remove('scrolling');
         
         // 检查文本是否溢出容器
         setTimeout(() => {
-            if (element.scrollWidth > container.clientWidth) {
-                // 文本溢出，添加滚动类
-                element.classList.add('scrolling');
-            } else {
-                // 文本没有溢出，移除滚动类
-                element.classList.remove('scrolling');
+            try {
+                // 确保元素和容器仍然存在于DOM中
+                if (element && container && document.body.contains(element)) {
+                    const elementWidth = element.scrollWidth;
+                    const containerWidth = container.clientWidth;
+                    
+                    // 调试信息，可以在控制台查看
+                    // console.log(`Text: ${element.innerText}, Element width: ${elementWidth}, Container width: ${containerWidth}`);
+                    
+                    if (elementWidth > containerWidth + 2) { // 添加2px容差
+                        // 文本溢出，添加滚动类
+                        element.classList.add('scrolling');
+                    } else {
+                        // 文本没有溢出，移除滚动类
+                        element.classList.remove('scrolling');
+                    }
+                }
+            } catch (error) {
+                console.error("文本溢出检查出错:", error);
             }
-        }, 100); // 延迟确保DOM已更新
+        }, 150); // 稍微增加延迟，确保DOM完全更新
     },
     
     playSong: function() {
@@ -1657,6 +1682,14 @@ const musicPlayer = {
             // 移除任何可能影响展开效果的内联样式
             this.player.style.width = '';
             this.player.style.height = '';
+            
+            // 当播放器展开后，重新检查文本溢出
+            setTimeout(() => {
+                if (this.songNameElement && this.songArtistElement) {
+                    this.checkTextOverflow(this.songNameElement);
+                    this.checkTextOverflow(this.songArtistElement);
+                }
+            }, 300);
         }, 10);
         
         if (isMobileDevice()) {
@@ -1685,6 +1718,50 @@ const musicPlayer = {
         } else {
             this.expand();
         }
+    },
+    
+    addEventListeners: function() {
+        // 播放器图标点击
+        this.musicIcon.addEventListener('click', () => {
+            if (this.player.classList.contains('expanded')) {
+                this.collapse();
+            } else {
+                this.expand();
+            }
+        });
+
+        // 播放/暂停按钮点击
+        this.playPauseBtn.addEventListener('click', () => {
+            if (this.isPlaying) {
+                this.pauseSong();
+            } else {
+                this.playSong();
+            }
+        });
+
+        // 上一首按钮点击
+        this.prevBtn.addEventListener('click', () => {
+            this.prevSong();
+        });
+
+        // 下一首按钮点击
+        this.nextBtn.addEventListener('click', () => {
+            this.nextSong();
+        });
+
+        // 歌曲结束时自动播放下一首
+        this.audio.addEventListener('ended', () => {
+            this.nextSong();
+        });
+        
+        // 窗口大小改变时重新检查文本溢出
+        window.addEventListener('resize', () => {
+            if (this.player.classList.contains('expanded') && 
+                this.songNameElement && this.songArtistElement) {
+                this.checkTextOverflow(this.songNameElement);
+                this.checkTextOverflow(this.songArtistElement);
+            }
+        });
     }
 };
 
