@@ -1313,7 +1313,6 @@ const musicPlayer = {
     audio: new Audio(),
     isPlaying: false,
     currentSongIndex: 0,
-    autoHideTimer: null,
     isUserInteractingWithPlayer: false, // 标记用户是否正在与播放器交互
     playlist: [
         {
@@ -1366,8 +1365,6 @@ const musicPlayer = {
             // 移动端上，点击图标只负责展开/收起播放器
             if (isMobileDevice()) {
                 this.toggleExpand();
-                // 重置自动收起计时器
-                this.resetAutoHideTimer();
             } else {
                 // 非移动端(桌面端)，点击图标仍然控制播放/暂停
                 this.togglePlay();
@@ -1390,10 +1387,6 @@ const musicPlayer = {
             // 阻止事件冒泡，防止触发外层的点击事件
             e.stopPropagation();
             this.togglePlay();
-            // 重置自动收起计时器
-            if (isMobileDevice()) {
-                this.resetAutoHideTimer();
-            }
         });
         
         // 上一首
@@ -1401,10 +1394,6 @@ const musicPlayer = {
             // 阻止事件冒泡
             e.stopPropagation();
             this.prevSong();
-            // 重置自动收起计时器
-            if (isMobileDevice()) {
-                this.resetAutoHideTimer();
-            }
         });
         
         // 下一首
@@ -1412,25 +1401,15 @@ const musicPlayer = {
             // 阻止事件冒泡
             e.stopPropagation();
             this.nextSong();
-            // 重置自动收起计时器
-            if (isMobileDevice()) {
-                this.resetAutoHideTimer();
-            }
         });
         
         // 添加播放器内部的其他区域点击事件，防止意外收起
         this.songNameElement.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (isMobileDevice()) {
-                this.resetAutoHideTimer();
-            }
         });
         
         this.songArtistElement.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (isMobileDevice()) {
-                this.resetAutoHideTimer();
-            }
         });
         
         // 音频事件监听
@@ -1551,20 +1530,6 @@ const musicPlayer = {
                 }
             });
         });
-    },
-    
-    resetAutoHideTimer: function() {
-        // 清除现有的计时器
-        if (this.autoHideTimer) {
-            clearTimeout(this.autoHideTimer);
-        }
-        
-        // 如果播放器是展开状态，设置新的自动收起计时器
-        if (this.player.classList.contains('expanded')) {
-            this.autoHideTimer = setTimeout(() => {
-                this.collapse();
-            }, 5000); // 5秒后自动收起
-        }
     },
     
     loadSong: function(index) {
@@ -1691,10 +1656,6 @@ const musicPlayer = {
                 }
             }, 300);
         }, 10);
-        
-        if (isMobileDevice()) {
-            this.resetAutoHideTimer();
-        }
     },
     
     collapse: function() {
@@ -1705,11 +1666,6 @@ const musicPlayer = {
             this.player.style.width = '60px';
             this.player.style.height = '60px';
         }, 10);
-        
-        if (this.autoHideTimer) {
-            clearTimeout(this.autoHideTimer);
-            this.autoHideTimer = null;
-        }
     },
     
     toggleExpand: function() {
