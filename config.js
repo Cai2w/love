@@ -76,4 +76,20 @@ var siteConfig = {
         signature: '留下更多回忆~',
         buttonText: '回到我们的开始'
     },
+    
+    // 音乐播放器设置
+    musicPlayer: {
+        playlist: [
+            {
+                name: 'A Thousand Years',
+                artist: 'Christina Perri',
+                url: 'https://music.163.com/song/media/outer/url?id=28122609.mp3'
+            },
+            {
+                name: 'in my imagination',
+                artist: 'Sød Ven',
+                url: 'https://music.163.com/song/media/outer/url?id=1921752479.mp3'
+            }
+        ]
+    }
 }; 

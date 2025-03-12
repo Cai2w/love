@@ -1314,20 +1314,29 @@ const musicPlayer = {
     isPlaying: false,
     currentSongIndex: 0,
     isUserInteractingWithPlayer: false, // 标记用户是否正在与播放器交互
-    playlist: [
-        {
-            name: 'A Thousand Years',
-            artist: 'Christina Perri',
-            url: 'https://music.163.com/song/media/outer/url?id=28122609.mp3'
-        },
-        {
-            name: 'in my imagination',
-            artist: 'Sød Ven',
-            url: 'https://music.163.com/song/media/outer/url?id=1921752479.mp3'
-        }
-    ],
+    playlist: [], // 初始为空数组，将从config中加载
     
     init: function() {
+        // 从配置中加载播放列表
+        if (config && config.musicPlayer && Array.isArray(config.musicPlayer.playlist)) {
+            this.playlist = config.musicPlayer.playlist;
+        } else {
+            // 如果配置中没有播放列表，使用默认列表
+            console.warn('未在配置中找到播放列表，使用默认播放列表');
+            this.playlist = [
+                {
+                    name: 'A Thousand Years',
+                    artist: 'Christina Perri',
+                    url: 'https://music.163.com/song/media/outer/url?id=28122609.mp3'
+                },
+                {
+                    name: 'in my imagination',
+                    artist: 'Sød Ven',
+                    url: 'https://music.163.com/song/media/outer/url?id=1921752479.mp3'
+                }
+            ];
+        }
+
         // 确保音乐播放器的样式正确
         this.player.style.position = 'fixed';
         this.player.style.bottom = '20px';
