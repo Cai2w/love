@@ -1475,6 +1475,11 @@ html, body {
     box-shadow: 0 3px 12px rgba(255, 143, 177, 0.4);
 }
 
+.music-icon svg {
+    transform: scale(1.1);  /* 稍微放大图标 */
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));  /* 添加微妙的阴影效果 */
+}
+
 .music-icon::after {
     content: "";
     position: absolute;
@@ -1591,6 +1596,17 @@ html, body {
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.7);
     animation: rotate 8s linear infinite;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* 播放状态下图标微弱跳动 */
+.music-player.playing .music-icon svg {
+    animation: slight-bounce 2s ease-in-out infinite;
+}
+
+@keyframes slight-bounce {
+    0%, 100% { transform: scale(1.1); }
+    50% { transform: scale(1.15); }
 }
 
 @keyframes rotate {
