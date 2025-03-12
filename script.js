@@ -1335,6 +1335,12 @@ const musicPlayer = {
         this.player.style.right = '20px'; 
         this.player.style.zIndex = '1000';
         
+        // 初始状态下设置为圆形
+        if (!this.player.classList.contains('expanded')) {
+            this.player.style.width = '60px';
+            this.player.style.height = '60px';
+        }
+        
         // 获取元素引用
         this.songNameElement = document.getElementById('songName');
         this.songArtistElement = document.getElementById('songArtist');
@@ -1646,6 +1652,13 @@ const musicPlayer = {
     
     expand: function() {
         this.player.classList.add('expanded');
+        // 确保过渡动画顺畅
+        setTimeout(() => {
+            // 移除任何可能影响展开效果的内联样式
+            this.player.style.width = '';
+            this.player.style.height = '';
+        }, 10);
+        
         if (isMobileDevice()) {
             this.resetAutoHideTimer();
         }
@@ -1653,6 +1666,13 @@ const musicPlayer = {
     
     collapse: function() {
         this.player.classList.remove('expanded');
+        // 确保过渡动画顺畅
+        setTimeout(() => {
+            // 确保收起状态宽高一致，呈现完美圆形
+            this.player.style.width = '60px';
+            this.player.style.height = '60px';
+        }, 10);
+        
         if (this.autoHideTimer) {
             clearTimeout(this.autoHideTimer);
             this.autoHideTimer = null;

@@ -1432,6 +1432,16 @@ html, body {
     background: rgba(20, 20, 25, 0.85);
 }
 
+/* 非展开状态下使用圆形边框 */
+.music-player:not(.expanded) {
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    padding: 12px;
+    justify-content: center;
+    background: rgba(20, 20, 25, 0.75);
+}
+
 .music-player:not(.expanded) .player-controls,
 .music-player:not(.expanded) .song-info {
     display: none;
@@ -1453,6 +1463,11 @@ html, body {
     margin-right: 8px;
     box-shadow: 0 2px 8px rgba(255, 143, 177, 0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 非展开状态下移除右边距 */
+.music-player:not(.expanded) .music-icon {
+    margin-right: 0;
 }
 
 .music-icon:hover {
