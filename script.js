@@ -611,21 +611,114 @@ function renderPhotoWall() {
     // 清空现有内容
     photoWall.innerHTML = '';
     
-    // 检查照片数据
-    if (!config.photos || !Array.isArray(config.photos) || config.photos.length === 0) {
-        photoWall.innerHTML = '<div class="error-message">还没有照片数据哦 快快记录起来~</div>';
-        return;
-    }
-    
-    console.log("找到 " + config.photos.length + " 张照片，开始渲染");
-
+    // 优先使用新的图库格式
+    if (config.photoGalleries && Array.isArray(config.photoGalleries) && config.photoGalleries.length > 0) {
+        console.log("找到 " + config.photoGalleries.length + " 个图库，开始渲染");
+        
+        // 直接使用photoWall作为容器，确保它有正确的样式
+        photoWall.classList.add('photo-wall');
+        
+        // 渲染每个图库
+        config.photoGalleries.forEach((gallery, index) => {
+            // 创建图库卡片
+            const galleryCard = document.createElement('div');
+            galleryCard.className = 'gallery-card';
+            galleryCard.style.animationDelay = `${index * (isMobileDevice() ? 0.1 : 0.075)}s`;
+            
+            // 创建图库照片容器
+            const photoContainer = document.createElement('div');
+            photoContainer.className = 'gallery-photo-container';
+            
+            // 如果有多张照片，添加多照片标识
+            if (gallery.photos && gallery.photos.length > 1) {
+                photoContainer.classList.add('gallery-multi');
+                
+                // 添加照片计数标签
+                const countLabel = document.createElement('div');
+                countLabel.className = 'gallery-count';
+                countLabel.innerHTML = `<i>📷</i> ${gallery.photos.length}`;
+                photoContainer.appendChild(countLabel);
+            }
+            
+            // 选择封面照片
+            let coverPhoto = null;
+            if (gallery.photos && gallery.photos.length > 0) {
+                // 使用指定的封面索引或默认使用第一张
+                const coverIndex = typeof gallery.coverIndex === 'number' ? 
+                    Math.min(gallery.coverIndex, gallery.photos.length - 1) : 0;
+                coverPhoto = gallery.photos[coverIndex];
+            }
+            
+            if (coverPhoto) {
+                // 创建封面图片
+                const coverImg = document.createElement('img');
+                coverImg.className = 'gallery-cover';
+                coverImg.src = coverPhoto.url;
+                coverImg.alt = gallery.title || coverPhoto.caption || '照片';
+                coverImg.loading = 'lazy';
+                
+                // 添加加载事件监听
+                coverImg.onload = function() {
+                    galleryCard.classList.add('loaded');
+                };
+                
+                coverImg.onerror = function() {
+                    console.error(`图库 "${gallery.title}" 封面加载失败`);
+                    coverImg.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2ZmOGZiMSI+PHBhdGggZD0iTTEyIDIyQzYuNDc3IDIyIDIgMTcuNTIzIDIgMTJTNi40NzcgMiAxMiAyYTEwIDEwIDAgMCAxIDEwIDEwYzAgNS41MjMtNC40NzcgMTAtMTAgMTB6bTEtN3YyaC0ydi0yaDJ6bTAtMTBWMTNoLTJWNWgyeiIvPjwvc3ZnPg==';
+                    galleryCard.classList.add('error');
+                };
+                
+                photoContainer.appendChild(coverImg);
+            }
+            
+            // 创建图库信息区域
+            const galleryInfo = document.createElement('div');
+            galleryInfo.className = 'gallery-info';
+            
+            // 添加标题
+            const title = document.createElement('h3');
+            title.className = 'gallery-title';
+            title.textContent = gallery.title || '未命名图库';
+            galleryInfo.appendChild(title);
+            
+            // 添加描述（如果有）
+            if (gallery.description) {
+                const description = document.createElement('div');
+                description.className = 'gallery-description';
+                description.textContent = gallery.description;
+                galleryInfo.appendChild(description);
+            }
+            
+            // 添加日期
+            if (gallery.date) {
+                const date = document.createElement('div');
+                date.className = 'gallery-date';
+                date.innerHTML = `<i>📅</i> ${gallery.date}`;
+                galleryInfo.appendChild(date);
+            }
+            
+            // 组装图库卡片
+            galleryCard.appendChild(photoContainer);
+            galleryCard.appendChild(galleryInfo);
+            photoWall.appendChild(galleryCard);
+            
+            // 添加点击事件，打开图库查看器
+            galleryCard.addEventListener('click', function(e) {
+                e.stopPropagation(); // 阻止事件冒泡，防止触发页面切换
+                openGalleryViewer(gallery);
+            });
+        });
+    } 
+    // 兼容旧版照片格式
+    else if (config.photos && Array.isArray(config.photos) && config.photos.length > 0) {
+        console.log("找到 " + config.photos.length + " 张照片，使用旧版格式渲染");
     
     // 创建照片元素
     config.photos.forEach((photo, index) => {
         // 创建照片容器
         const photoCard = document.createElement('div');
         photoCard.className = 'photo-card';
-        photoCard.style.animationDelay = `${index * (isMobileDevice() ? 0.1 : 0.075)}s`;
+            photoCard.style.animationDelay = `${index * (isMobileDevice() ? 0.1 : 0.075)}s`;
         
         // 添加照片装饰边框
         const photoBorder = document.createElement('div');
@@ -697,240 +790,379 @@ function renderPhotoWall() {
             openPhotoFullscreen(photo);
         });
     });
+    } else {
+        photoWall.innerHTML = '<div class="error-message">还没有照片数据哦 快快记录起来~</div>';
+        return;
+    }
     
-    // 改进照片全屏查看功能，添加移动端放大支持
-    function openPhotoFullscreen(photo) {
-        // 创建全屏照片查看器
-        const viewer = document.createElement('div');
-        viewer.className = 'photo-fullscreen-viewer';
-        
-        // 创建关闭按钮
-        const closeBtn = document.createElement('div');
-        closeBtn.className = 'fullscreen-close-btn';
-        closeBtn.innerHTML = '×';
-        closeBtn.addEventListener('click', function() {
-            viewer.classList.add('closing');
-            setTimeout(() => viewer.remove(), 300);
-        });
-        
-        // 创建图片容器
-        const imgContainer = document.createElement('div');
-        imgContainer.className = 'fullscreen-img-container';
-        
-        // 创建照片
-        const img = document.createElement('img');
-        img.src = photo.url;
-        img.alt = photo.caption || '照片';
-        img.className = 'fullscreen-image';
-        
-        // 创建图片信息
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'fullscreen-info';
-        
-        if (photo.caption) {
-            const captionDiv = document.createElement('div');
-            captionDiv.className = 'fullscreen-caption';
-            captionDiv.textContent = photo.caption;
-            infoDiv.appendChild(captionDiv);
-        }
-        
-        if (photo.date) {
-            const dateDiv = document.createElement('div');
-            dateDiv.className = 'fullscreen-date';
-            dateDiv.textContent = photo.date;
-            infoDiv.appendChild(dateDiv);
-        }
-        
-        // 组装全屏查看器
-        imgContainer.appendChild(img);
-        viewer.appendChild(closeBtn);
-        viewer.appendChild(imgContainer);
-        viewer.appendChild(infoDiv);
-        document.body.appendChild(viewer);
-        
-        
-        // 移动端手势变量
-        let startX, startY, initialPinchDistance;
-        let currentScale = 1;
-        let currentTranslateX = 0;
-        let currentTranslateY = 0;
-        let isZoomed = false;
-        
-        // 处理双击缩放
-        imgContainer.addEventListener('dblclick', function(e) {
-            e.preventDefault();
+    // 标记照片墙已渲染
+    photosRendered = true;
+}
+
+// 图库查看器函数
+function openGalleryViewer(gallery) {
+    // 打开图库时禁用页面滚动
+    const bodyStyle = document.body.style;
+    const originalOverflow = bodyStyle.overflow;
+    const originalHeight = bodyStyle.height;
+    bodyStyle.overflow = 'hidden';
+    bodyStyle.height = '100vh';
+    
+    // 检测是否为移动设备
+    const isMobile = isMobileDevice();
+    
+    // 创建图库查看器
+    const modal = document.createElement('div');
+    modal.className = 'gallery-modal';
+    
+    // 创建头部
+    const header = document.createElement('div');
+    header.className = 'gallery-modal-header';
+    
+    // 添加标题
+    const title = document.createElement('h2');
+    title.className = 'gallery-modal-title';
+    title.textContent = gallery.title || '照片集';
+    header.appendChild(title);
+    
+    // 添加关闭按钮
+    const closeBtn = document.createElement('div');
+    closeBtn.className = 'gallery-close-btn';
+    closeBtn.innerHTML = '×';
+    closeBtn.addEventListener('click', function() {
+        modal.classList.remove('active');
+        // 关闭图库时恢复页面滚动
+        bodyStyle.overflow = originalOverflow;
+        bodyStyle.height = originalHeight;
+        setTimeout(() => modal.remove(), 300);
+    });
+    header.appendChild(closeBtn);
+    
+    // 创建幻灯片容器
+    const slider = document.createElement('div');
+    slider.className = 'gallery-slider';
+    
+    // 当前幻灯片索引
+    let currentSlide = 0;
+    
+    // 创建幻灯片
+    if (gallery.photos && gallery.photos.length > 0) {
+        gallery.photos.forEach((photo, index) => {
+            const slide = document.createElement('div');
+            slide.className = 'gallery-slide';
+            if (index === 0) slide.classList.add('active');
             
-            if (isZoomed) {
-                // 重置缩放
-                currentScale = 1;
-                currentTranslateX = 0;
-                currentTranslateY = 0;
-                isZoomed = false;
-            } else {
-                // 放大到双倍
-                currentScale = 2;
-                
-                // 计算点击位置为缩放中心
-                const rect = imgContainer.getBoundingClientRect();
-                const offsetX = e.clientX - rect.left;
-                const offsetY = e.clientY - rect.top;
-                
-                currentTranslateX = (offsetX - rect.width / 2) * -1;
-                currentTranslateY = (offsetY - rect.height / 2) * -1;
-                
-                isZoomed = true;
+            // 创建图片
+            const img = document.createElement('img');
+            img.src = photo.url;
+            img.alt = photo.caption || '照片';
+            img.loading = 'lazy';
+            
+            // 防止拖动图片
+            img.draggable = false;
+            
+            // 创建标题
+            if (photo.caption) {
+                const caption = document.createElement('div');
+                caption.className = 'gallery-caption';
+                caption.textContent = photo.caption;
+                slide.appendChild(caption);
             }
             
-            updateImageTransform();
+            slide.appendChild(img);
+            slider.appendChild(slide);
         });
-        
-        // 触摸事件处理 - 支持拖动和捏合缩放
-        if (isMobileDevice()) {
-            imgContainer.addEventListener('touchstart', function(e) {
-                // 防止页面滚动
-                e.preventDefault();
-                
-                if (e.touches.length === 1) {
-                    // 单指触摸 - 准备拖动
-                    startX = e.touches[0].clientX - currentTranslateX;
-                    startY = e.touches[0].clientY - currentTranslateY;
-                } 
-                else if (e.touches.length === 2) {
-                    // 双指触摸 - 准备缩放
-                    initialPinchDistance = getPinchDistance(e);
-                }
-            }, { passive: false });
-            
-            imgContainer.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-                
-                if (e.touches.length === 1 && isZoomed) {
-                    // 单指拖动 - 只有在放大状态下才能拖动
-                    currentTranslateX = e.touches[0].clientX - startX;
-                    currentTranslateY = e.touches[0].clientY - startY;
-                    
-                    // 限制拖动范围
-                    const maxTranslate = (currentScale - 1) * imgContainer.offsetWidth / 2;
-                    currentTranslateX = Math.max(-maxTranslate, Math.min(maxTranslate, currentTranslateX));
-                    currentTranslateY = Math.max(-maxTranslate, Math.min(maxTranslate, currentTranslateY));
-                    
-                    updateImageTransform();
-                } 
-                else if (e.touches.length === 2) {
-                    // 双指缩放
-                    const currentDistance = getPinchDistance(e);
-                    const scaleFactor = currentDistance / initialPinchDistance;
-                    
-                    // 计算新的缩放值，限制在1.0-3.0之间
-                    currentScale = Math.max(1, Math.min(3, scaleFactor * currentScale));
-                    
-                    isZoomed = currentScale > 1.05;
-                    
-                    // 如果缩放回到接近1，则重置位置
-                    if (!isZoomed) {
-                        currentTranslateX = 0;
-                        currentTranslateY = 0;
-                    }
-                    
-                    updateImageTransform();
-                    initialPinchDistance = currentDistance;
-                }
-            }, { passive: false });
-            
-            imgContainer.addEventListener('touchend', function(e) {
-                // 如果只有一个手指，并且已经缩放
-                if (e.touches.length === 0 && isZoomed) {
-                    // 如果缩放很小，重置到正常大小
-                    if (currentScale < 1.1) {
-                        currentScale = 1;
-                        currentTranslateX = 0;
-                        currentTranslateY = 0;
-                        isZoomed = false;
-                        updateImageTransform();
-                    }
-                }
-            });
-        }
-        
-        // 更新图片变换
-        function updateImageTransform() {
-            img.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentScale})`;
-            
-            // 如果放大了，隐藏信息
-            if (isZoomed) {
-                infoDiv.style.opacity = '0';
-            } else {
-                infoDiv.style.opacity = '1';
-            }
-        }
-        
-        // 计算两指之间的距离
-        function getPinchDistance(e) {
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-        
-        // 确保全屏查看器的点击事件不冒泡
-        viewer.addEventListener('click', function(e) {
-            e.stopPropagation(); // 阻止事件冒泡到文档
-            
-            if (e.target === viewer || e.target === imgContainer) {
-                if (!isZoomed) {
-                    viewer.classList.add('closing');
-                    setTimeout(() => viewer.remove(), 300);
-                }
-            }
-        });
-        
-        // 为移动端添加点击事件处理
-        if (isMobileDevice()) {
-            // 添加移动端提示
-            const zoomHint = document.createElement('div');
-            zoomHint.className = 'zoom-hint';
-            zoomHint.textContent = '双指缩放或双击放大查看';
-            viewer.appendChild(zoomHint);
-            
-            // 3秒后隐藏提示
-            setTimeout(() => {
-                zoomHint.style.opacity = '0';
-                setTimeout(() => zoomHint.remove(), 500);
-            }, 3000);
-            
-            // 确保图片容器的点击事件也不会冒泡
-            imgContainer.addEventListener('click', function(e) {
+    }
+    
+    // 创建导航按钮（在移动端不创建左右按钮）
+    if (gallery.photos && gallery.photos.length > 1) {
+        // 仅在非移动设备上创建上一张、下一张按钮
+        if (!isMobile) {
+            // 上一张按钮
+            const prevBtn = document.createElement('div');
+            prevBtn.className = 'gallery-prev';
+            prevBtn.innerHTML = '❮';
+            prevBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
+                prevSlide();
+            });
+            slider.appendChild(prevBtn);
+            
+            // 下一张按钮
+            const nextBtn = document.createElement('div');
+            nextBtn.className = 'gallery-next';
+            nextBtn.innerHTML = '❯';
+            nextBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                nextSlide();
+            });
+            slider.appendChild(nextBtn);
+        }
+        
+        // 创建导航点（移动端和非移动端都创建）
+        const navigation = document.createElement('div');
+        navigation.className = 'gallery-navigation';
+        
+        const dots = document.createElement('div');
+        dots.className = 'gallery-dots';
+        
+        gallery.photos.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'gallery-dot';
+            if (index === 0) dot.classList.add('active');
+            
+            dot.addEventListener('click', function() {
+                currentSlide = index;
+                updateSlide();
             });
             
-            // 确保全屏图片的触摸事件也不会冒泡
-            img.addEventListener('touchstart', function(e) {
-                e.stopPropagation();
-            }, { passive: false });
-        }
+            dots.appendChild(dot);
+        });
         
-        // 支持ESC键关闭
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && document.body.contains(viewer)) {
-                viewer.classList.add('closing');
-                setTimeout(() => viewer.remove(), 300);
+        navigation.appendChild(dots);
+        slider.appendChild(navigation);
+    }
+    
+    // 辅助函数：切换到上一张
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + gallery.photos.length) % gallery.photos.length;
+        updateSlide();
+    }
+    
+    // 辅助函数：切换到下一张
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % gallery.photos.length;
+        updateSlide();
+    }
+    
+    // 更新幻灯片函数
+    function updateSlide() {
+        const slides = slider.querySelectorAll('.gallery-slide');
+        const dots = slider.querySelectorAll('.gallery-dot');
+        
+        slides.forEach((slide, index) => {
+            if (index === currentSlide) {
+                slide.classList.add('active');
+            } else {
+                slide.classList.remove('active');
+            }
+        });
+        
+        dots.forEach((dot, index) => {
+            if (index === currentSlide) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
             }
         });
     }
     
-    // 优化滚动体验
-    const smoothScrollToPhoto = (photoIndex) => {
-        const photos = photoWall.querySelectorAll('.photo-card');
-        if (photos[photoIndex]) {
-            photos[photoIndex].scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+    // 添加键盘导航
+    function handleKeyDown(e) {
+        if (e.key === 'ArrowLeft') {
+            prevSlide();
+        } else if (e.key === 'ArrowRight') {
+            nextSlide();
+        } else if (e.key === 'Escape') {
+            modal.classList.remove('active');
+            // 按ESC关闭图库时恢复页面滚动
+            bodyStyle.overflow = originalOverflow;
+            bodyStyle.height = originalHeight;
+            setTimeout(() => {
+                modal.remove();
+                document.removeEventListener('keydown', handleKeyDown);
+            }, 300);
         }
-    };
+    }
     
-    // 标记为已渲染
-    photosRendered = true;
-    console.log("照片墙渲染完成");
+    document.addEventListener('keydown', handleKeyDown);
+    
+    // 触摸滑动变量
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let touchStartY = 0;
+    let touchEndY = 0;
+    let touchStartTime = 0;
+    
+    // 添加触摸事件监听器（主要用于移动端）
+    function handleTouchStart(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = new Date().getTime();
+    }
+    
+    function handleTouchMove(e) {
+        // 防止默认行为（如页面滚动）
+        e.preventDefault();
+    }
+    
+    function handleTouchEnd(e) {
+        touchEndX = e.changedTouches[0].clientX;
+        touchEndY = e.changedTouches[0].clientY;
+        const touchEndTime = new Date().getTime();
+        
+        // 计算水平和垂直滑动距离
+        const distX = touchEndX - touchStartX;
+        const distY = touchEndY - touchStartY;
+        
+        // 计算滑动时间
+        const timeDiff = touchEndTime - touchStartTime;
+        
+        // 如果水平滑动距离大于垂直滑动距离，且滑动足够快和足够长
+        if (Math.abs(distX) > Math.abs(distY) && Math.abs(distX) > 50 && timeDiff < 300) {
+            // 右滑（向前翻页）
+            if (distX > 0) {
+                prevSlide();
+            }
+            // 左滑（向后翻页）
+            else {
+                nextSlide();
+            }
+        }
+    }
+    
+    // 移动端添加触摸事件监听
+    if (isMobile && gallery.photos && gallery.photos.length > 1) {
+        slider.addEventListener('touchstart', handleTouchStart, false);
+        slider.addEventListener('touchmove', handleTouchMove, { passive: false });
+        slider.addEventListener('touchend', handleTouchEnd, false);
+        
+        // 添加滑动提示（仅在第一次加载时显示）
+        if (!sessionStorage.getItem('gallerySwipeHintShown')) {
+            const swipeHint = document.createElement('div');
+            swipeHint.className = 'gallery-swipe-hint';
+            swipeHint.textContent = '左右滑动切换照片';
+            swipeHint.style.position = 'absolute';
+            swipeHint.style.bottom = '80px';
+            swipeHint.style.left = '50%';
+            swipeHint.style.transform = 'translateX(-50%)';
+            swipeHint.style.background = 'rgba(0, 0, 0, 0.7)';
+            swipeHint.style.color = 'white';
+            swipeHint.style.padding = '10px 15px';
+            swipeHint.style.borderRadius = '20px';
+            swipeHint.style.fontSize = '14px';
+            swipeHint.style.zIndex = '9999';
+            swipeHint.style.opacity = '0';
+            swipeHint.style.transition = 'opacity 0.3s ease';
+            
+            modal.appendChild(swipeHint);
+            
+            // 显示然后隐藏提示
+            setTimeout(() => {
+                swipeHint.style.opacity = '1';
+                setTimeout(() => {
+                    swipeHint.style.opacity = '0';
+                    setTimeout(() => swipeHint.remove(), 300);
+                }, 2000);
+                sessionStorage.setItem('gallerySwipeHintShown', 'true');
+            }, 500);
+        }
+    }
+    
+    // 组装模态框
+    modal.appendChild(header);
+    modal.appendChild(slider);
+    document.body.appendChild(modal);
+    
+    // 显示模态框
+    setTimeout(() => modal.classList.add('active'), 10);
+
+    // 阻止图库内部滚轮事件传播到外部
+    modal.addEventListener('wheel', function(e) {
+        e.stopPropagation();
+    }, { passive: false });
+    
+    // 阻止触摸滑动事件传播到外部
+    modal.addEventListener('touchmove', function(e) {
+        e.stopPropagation();
+    }, { passive: false });
+}
+
+// 改进照片全屏查看功能，添加移动端放大支持
+function openPhotoFullscreen(photo) {
+    // 禁用页面滚动
+    const bodyStyle = document.body.style;
+    const originalOverflow = bodyStyle.overflow;
+    const originalHeight = bodyStyle.height;
+    bodyStyle.overflow = 'hidden';
+    bodyStyle.height = '100vh';
+    
+    // 创建全屏照片查看器
+    const viewer = document.createElement('div');
+    viewer.className = 'photo-fullscreen-viewer';
+    
+    // 创建关闭按钮
+    const closeBtn = document.createElement('div');
+    closeBtn.className = 'fullscreen-close-btn';
+    closeBtn.innerHTML = '×';
+    closeBtn.addEventListener('click', function() {
+        viewer.classList.add('closing');
+        // 恢复页面滚动
+        bodyStyle.overflow = originalOverflow;
+        bodyStyle.height = originalHeight;
+        setTimeout(() => viewer.remove(), 300);
+    });
+    
+    // 创建图片容器
+    const imgContainer = document.createElement('div');
+    imgContainer.className = 'fullscreen-img-container';
+    
+    // 创建照片
+    const img = document.createElement('img');
+    img.src = photo.url;
+    img.alt = photo.caption || '照片';
+    img.className = 'fullscreen-image';
+    
+    // 创建图片信息
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'fullscreen-info';
+    
+    if (photo.caption) {
+        const captionDiv = document.createElement('div');
+        captionDiv.className = 'fullscreen-caption';
+        captionDiv.textContent = photo.caption;
+        infoDiv.appendChild(captionDiv);
+    }
+    
+    if (photo.date) {
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'fullscreen-date';
+        dateDiv.textContent = photo.date;
+        infoDiv.appendChild(dateDiv);
+    }
+    
+    // 组装全屏查看器
+    imgContainer.appendChild(img);
+    viewer.appendChild(closeBtn);
+    viewer.appendChild(imgContainer);
+    viewer.appendChild(infoDiv);
+    document.body.appendChild(viewer);
+
+    // 添加ESC键关闭功能
+    function handleKeyDown(e) {
+        if (e.key === 'Escape') {
+            viewer.classList.add('closing');
+            // 恢复页面滚动
+            bodyStyle.overflow = originalOverflow;
+            bodyStyle.height = originalHeight;
+            setTimeout(() => {
+                viewer.remove();
+                document.removeEventListener('keydown', handleKeyDown);
+            }, 300);
+        }
+    }
+    
+    document.addEventListener('keydown', handleKeyDown);
+    
+    // 阻止查看器内部滚轮事件传播到外部
+    viewer.addEventListener('wheel', function(e) {
+        e.stopPropagation();
+    }, { passive: false });
+    
+    // 阻止触摸滑动事件传播到外部
+    viewer.addEventListener('touchmove', function(e) {
+        e.stopPropagation();
+    }, { passive: false });
 }
 
 // 重写setupEventListeners函数中的滚动相关部分

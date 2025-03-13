@@ -294,19 +294,35 @@ body {
 /* 照片墙样式增强 */
 .photo-wall {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    grid-auto-rows: 250px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* 保持自动填充列，每列最小250px */
     grid-auto-flow: dense;
-    gap: 20px;
+    gap: 25px; /* 增加间距 */
     padding: 25px;
     width: 100%;
-    max-width: 1200px;
-    max-height: 80vh;
+    max-width: 100%; /* 去掉宽度限制，利用整个容器宽度 */
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 10;
     position: relative;
     scroll-padding: 15px;
+    justify-content: center; /* 确保居中显示 */
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .photo-wall {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* 为平板调整列宽 */
+        gap: 15px;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .photo-wall {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* 为手机调整列宽 */
+        gap: 10px;
+        padding: 10px;
+    }
 }
 
 /* 照片卡片基础样式优化 */
@@ -1174,6 +1190,8 @@ html, body {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     touch-action: none; /* 防止默认触摸行为 */
+    overflow: hidden; /* 防止内容溢出 */
+    overscroll-behavior: contain; /* 防止过度滚动影响外部 */
 }
 
 .photo-fullscreen-viewer.closing {
@@ -1677,4 +1695,490 @@ html, body {
 .song-info::after {
     right: 0;
     background: linear-gradient(to left, rgba(20, 20, 25, 0.85) 0%, rgba(20, 20, 25, 0) 100%);
+}
+
+/* 新增图库样式 */
+.gallery-wall {
+    display: grid; /* 改用grid布局代替flex，更好控制列数 */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* 自动填充列，每列最小250px */
+    gap: 25px; /* 增加间距 */
+    padding: 25px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    margin: 0 auto; /* 居中整个墙 */
+}
+
+.gallery-card {
+    position: relative;
+    width: 100%; /* 宽度改为100%，适应grid单元格宽度 */
+    min-height: 270px; /* 改为最小高度 */
+    height: auto; /* 允许根据内容自动调整高度 */
+    margin-bottom: 0; /* 移除底部外边距，由grid间距控制 */
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    transform: translateY(30px);
+    opacity: 0;
+    animation: fadeInUp 0.6s ease forwards;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex; /* 添加弹性布局 */
+    flex-direction: column; /* 垂直排列子元素 */
+}
+
+.gallery-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 143, 177, 0.3); /* 悬停时添加粉色边框效果 */
+}
+
+.gallery-photo-container {
+    position: relative;
+    width: 100%;
+    height: 220px; /* 保持固定高度 */
+    min-height: 220px; /* 确保最小高度 */
+    overflow: hidden;
+    flex: 0 0 auto; /* 不伸缩，保持大小 */
+}
+
+/* 图库封面 */
+.gallery-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.gallery-card:hover .gallery-cover {
+    transform: scale(1.1);
+}
+
+/* 多照片叠加效果 */
+.gallery-multi {
+    position: relative;
+}
+
+.gallery-multi::before,
+.gallery-multi::after {
+    content: '';
+    position: absolute;
+    width: 95%; /* 增加宽度，使叠加更明显 */
+    height: 95%; /* 增加高度，使叠加更明显 */
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: -1;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gallery-multi::before {
+    top: -5px;
+    right: -5px;
+    transform: rotate(3deg);
+}
+
+.gallery-multi::after {
+    bottom: -5px;
+    left: -5px;
+    transform: rotate(-2deg);
+}
+
+/* 图库计数标签 */
+.gallery-count {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border-radius: 15px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.gallery-count i {
+    margin-right: 5px;
+}
+
+/* 图库信息 */
+.gallery-info {
+    padding: 8px 12px; /* 保持适当的内边距 */
+    background-color: rgba(0, 0, 0, 0.7); /* 深色背景 */
+    min-height: 50px; /* 改为最小高度而不是固定高度 */
+    height: auto; /* 允许自动扩展高度 */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 保持居中对齐 */
+    flex: 1 1 auto; /* 允许伸缩，自动填充剩余空间 */
+}
+
+.gallery-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0 0 4px 0; /* 添加底部间距 */
+    color: #fff;
+    white-space: normal; /* 允许文本换行 */
+    overflow: visible; /* 确保文本可见 */
+    line-height: 1.2; /* 添加合适的行高 */
+    max-height: none; /* 移除最大高度限制 */
+}
+
+.gallery-description {
+    display: none; /* 隐藏描述，专注于标题和日期 */
+}
+
+.gallery-date {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    margin-top: 2px; /* 保持小间距 */
+}
+
+/* 相册展示蒙层 */
+.gallery-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    overflow: hidden; /* 防止内容溢出 */
+    overscroll-behavior: contain; /* 防止过度滚动影响外部 */
+    -webkit-tap-highlight-color: transparent; /* 移除触摸高亮 */
+}
+
+.gallery-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.gallery-modal-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+    z-index: 1002;
+}
+
+.gallery-modal-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.gallery-close-btn {
+    width: 30px;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.gallery-close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 相册幻灯片 */
+.gallery-slider {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.gallery-slide {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.5s ease;
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.gallery-slide.active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.gallery-slide img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    pointer-events: none; /* 防止图片被拖动 */
+    user-select: none; /* 防止图片被选中 */
+    -webkit-user-drag: none; /* 防止图片被拖拽 */
+}
+
+.gallery-caption {
+    margin-top: 20px;
+    color: #fff;
+    text-align: center;
+    max-width: 80%;
+    font-size: 14px;
+}
+
+.gallery-navigation {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1002;
+}
+
+.gallery-dots {
+    display: flex;
+    gap: 10px;
+}
+
+.gallery-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.gallery-dot.active {
+    background-color: #fff;
+    transform: scale(1.2);
+}
+
+.gallery-prev, .gallery-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1002;
+}
+
+.gallery-prev {
+    left: 20px;
+}
+
+.gallery-next {
+    right: 20px;
+}
+
+.gallery-prev:hover, .gallery-next:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .gallery-wall {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* 调整移动端列宽 */
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .gallery-card {
+        min-height: 210px;
+        height: auto;
+    }
+    
+    .gallery-photo-container {
+        height: 170px;
+        min-height: 170px;
+        flex: 0 0 auto;
+    }
+    
+    .gallery-info {
+        padding: 6px 10px;
+        min-height: 40px; /* 改为最小高度 */
+        height: auto; /* 允许自动扩展 */
+    }
+    
+    .gallery-title {
+        font-size: 12px;
+        line-height: 1.2; /* 确保合适的行高 */
+        margin: 0 0 2px 0; /* 更小的底部间距 */
+    }
+    
+    .gallery-date {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .gallery-wall {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* 更小屏幕更窄列 */
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .gallery-card {
+        min-height: 190px; /* 更小屏幕减小卡片最小高度 */
+        height: auto;
+    }
+    
+    .gallery-photo-container {
+        height: 150px;
+        min-height: 150px;
+        flex: 0 0 auto;
+    }
+    
+    .gallery-info {
+        min-height: 40px; /* 改为最小高度 */
+        height: auto; /* 允许自动扩展 */
+        padding: 5px 8px;
+    }
+    
+    .gallery-title {
+        font-size: 11px;
+        line-height: 1.2;
+        margin: 0 0 1px 0; /* 更小的底部间距 */
+    }
+    
+    .gallery-date {
+        font-size: 9px;
+        margin-top: 1px;
+    }
+}
+
+/* 适配现有照片墙的动画 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 添加幻灯片切换动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* 添加移动端滑动过渡效果 */
+@media (max-width: 768px) {
+    .gallery-slide {
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        will-change: transform, opacity;
+    }
+    
+    /* 确保容器能接收触摸事件 */
+    .gallery-slider {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        touch-action: pan-y;
+        user-select: none;
+    }
+    
+    /* 隐藏移动端的导航按钮 */
+    .gallery-prev, 
+    .gallery-next {
+        display: none;
+    }
+    
+    /* 增大移动端点按区域 */
+    .gallery-dot {
+        width: 12px;
+        height: 12px;
+        margin: 0 8px;
+    }
+    
+    /* 滑动提示样式 */
+    .gallery-swipe-hint {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+/* 添加滑动提示动画 */
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0; }
+    20%, 80% { opacity: 1; }
+}
+
+/* 图库全屏查看器改进 */
+.gallery-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    overflow: hidden; /* 防止内容溢出 */
+    overscroll-behavior: contain; /* 防止过度滚动影响外部 */
+    -webkit-tap-highlight-color: transparent; /* 移除触摸高亮 */
+}
+
+/* 增强图库图片交互 */
+.gallery-slide img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    pointer-events: none; /* 防止图片被拖动 */
+    user-select: none; /* 防止图片被选中 */
+    -webkit-user-drag: none; /* 防止图片被拖拽 */
 }
