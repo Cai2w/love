@@ -1802,10 +1802,22 @@ html, body {
     z-index: 2;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
 }
 
-.gallery-count i {
-    margin-right: 5px;
+.gallery-count svg {
+    margin-right: 4px;
+    stroke: #ffffff; /* 白色图标 */
+    vertical-align: text-bottom;
+}
+
+.gallery-date svg {
+    margin-right: 4px;
+    stroke: #ff9fd1; /* 使用粉色以匹配网站主题 */
+    vertical-align: text-bottom;
+    position: relative;
+    top: -1px; /* 微调对齐 */
 }
 
 /* 图库信息 */
