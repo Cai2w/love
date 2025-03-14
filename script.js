@@ -829,14 +829,27 @@ function openGalleryViewer(gallery) {
     const closeBtn = document.createElement('div');
     closeBtn.className = 'gallery-close-btn';
     closeBtn.innerHTML = '×';
-    closeBtn.addEventListener('click', function() {
+    closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeGallery();
+    });
+    header.appendChild(closeBtn);
+    
+    // 关闭图库的函数
+    function closeGallery() {
         modal.classList.remove('active');
         // 关闭图库时恢复页面滚动
         bodyStyle.overflow = originalOverflow;
         bodyStyle.height = originalHeight;
-        setTimeout(() => modal.remove(), 300);
-    });
-    header.appendChild(closeBtn);
+        
+        // 移除键盘事件监听器
+        document.removeEventListener('keydown', handleKeyDown);
+        
+        // 延迟移除元素，等待淡出动画完成
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
     
     // 创建幻灯片容器
     const slider = document.createElement('div');
@@ -853,23 +866,41 @@ function openGalleryViewer(gallery) {
             if (index === 0) slide.classList.add('active');
             
             // 创建图片
-            const img = document.createElement('img');
-            img.src = photo.url;
-            img.alt = photo.caption || '照片';
+        const img = document.createElement('img');
+        img.src = photo.url;
+        img.alt = photo.caption || '照片';
             img.loading = 'lazy';
             
             // 防止拖动图片
             img.draggable = false;
             
-            // 创建标题
-            if (photo.caption) {
+            // 移动端：防止点击图片时关闭图库
+            if (isMobile) {
+                img.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+            
+            // 先添加图片到幻灯片
+            slide.appendChild(img);
+            
+            // 创建标题 - 现在放到图片下方
+        if (photo.caption) {
                 const caption = document.createElement('div');
                 caption.className = 'gallery-caption';
                 caption.textContent = photo.caption;
+                
+                // 移动端：防止点击标题时关闭图库
+                if (isMobile) {
+                    caption.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+                }
+                
+                // 添加标题到幻灯片（在图片后面）
                 slide.appendChild(caption);
             }
             
-            slide.appendChild(img);
             slider.appendChild(slide);
         });
     }
@@ -905,6 +936,13 @@ function openGalleryViewer(gallery) {
         
         const dots = document.createElement('div');
         dots.className = 'gallery-dots';
+        
+        // 移动端：防止点击导航区域时关闭图库
+        if (isMobile) {
+            navigation.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
         
         gallery.photos.forEach((_, index) => {
             const dot = document.createElement('div');
@@ -965,14 +1003,7 @@ function openGalleryViewer(gallery) {
         } else if (e.key === 'ArrowRight') {
             nextSlide();
         } else if (e.key === 'Escape') {
-            modal.classList.remove('active');
-            // 按ESC关闭图库时恢复页面滚动
-            bodyStyle.overflow = originalOverflow;
-            bodyStyle.height = originalHeight;
-            setTimeout(() => {
-                modal.remove();
-                document.removeEventListener('keydown', handleKeyDown);
-            }, 300);
+            closeGallery();
         }
     }
     
@@ -1116,10 +1147,17 @@ function openGalleryViewer(gallery) {
         e.stopPropagation();
     }, { passive: false });
     
-    // 阻止模态框内的所有点击事件冒泡
-    modal.addEventListener('click', function(e) {
-        e.stopPropagation();
-    }, { passive: false });
+    // 移动端：添加点击非图片区域关闭功能
+    if (isMobile) {
+        modal.addEventListener('click', function(e) {
+            closeGallery();
+        }, { passive: false });
+    } else {
+        // 非移动端：只阻止点击事件冒泡
+        modal.addEventListener('click', function(e) {
+            e.stopPropagation();
+        }, { passive: false });
+    }
 }
 
 // 改进照片全屏查看功能，添加移动端放大支持
@@ -1141,11 +1179,11 @@ function openPhotoFullscreen(photo) {
     closeBtn.innerHTML = '×';
     closeBtn.addEventListener('click', function(e) {
         e.stopPropagation(); // 阻止事件冒泡
-        viewer.classList.add('closing');
+                viewer.classList.add('closing');
         // 恢复页面滚动
         bodyStyle.overflow = originalOverflow;
         bodyStyle.height = originalHeight;
-        setTimeout(() => viewer.remove(), 300);
+                setTimeout(() => viewer.remove(), 300);
     });
     
     // 创建图片容器

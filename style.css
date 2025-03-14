@@ -1958,16 +1958,31 @@ html, body {
 }
 
 .gallery-caption {
-    margin-top: 20px;
+    margin-top: 15px;
     color: #fff;
     text-align: center;
-    max-width: 80%;
+    max-width: 90%;
     font-size: 14px;
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .gallery-caption {
+        font-size: 13px;
+        margin-top: 12px;
+        padding: 6px 10px;
+    }
 }
 
 .gallery-navigation {
     position: absolute;
-    bottom: 20px;
+    bottom: 50px; /* 进一步提高位置，从30px上移到50px */
     left: 0;
     width: 100%;
     display: flex;
@@ -2142,17 +2157,33 @@ html, body {
         display: none;
     }
     
-    /* 增大移动端点按区域 */
-    .gallery-dot {
-        width: 12px;
-        height: 12px;
-        margin: 0 8px;
+    /* 调整移动端导航点的样式 */
+    .gallery-navigation {
+        bottom: 50px; /* 进一步提高位置，从30px上移到50px */
     }
     
-    /* 滑动提示样式 */
+    .gallery-dots {
+        gap: 8px; /* 缩小间距 */
+    }
+    
+    /* 缩小移动端导航点的大小 */
+    .gallery-dot {
+        width: 8px;
+        height: 8px;
+        margin: 0 2px;
+        opacity: 0.6; /* 降低默认不活跃状态的不透明度 */
+    }
+    
+    .gallery-dot.active {
+        width: 9px;
+        height: 9px;
+        opacity: 1;
+        background-color: #fff;
+    }
+    
+    /* 提升导航点的淡出效果 */
     .gallery-swipe-hint {
-        opacity: 0;
-        pointer-events: none;
+        bottom: 100px !important; /* 提高滑动提示的位置，避免与导航点重叠 */
     }
 }
 
@@ -2160,37 +2191,4 @@ html, body {
 @keyframes fadeInOut {
     0%, 100% { opacity: 0; }
     20%, 80% { opacity: 1; }
-}
-
-/* 图库全屏查看器改进 */
-.gallery-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 1001;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    overflow: hidden; /* 防止内容溢出 */
-    overscroll-behavior: contain; /* 防止过度滚动影响外部 */
-    -webkit-tap-highlight-color: transparent; /* 移除触摸高亮 */
-}
-
-/* 增强图库图片交互 */
-.gallery-slide img {
-    max-width: 100%;
-    max-height: 80vh;
-    object-fit: contain;
-    border-radius: 4px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    pointer-events: none; /* 防止图片被拖动 */
-    user-select: none; /* 防止图片被选中 */
-    -webkit-user-drag: none; /* 防止图片被拖拽 */
 }
