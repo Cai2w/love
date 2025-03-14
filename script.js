@@ -911,7 +911,8 @@ function openGalleryViewer(gallery) {
             dot.className = 'gallery-dot';
             if (index === 0) dot.classList.add('active');
             
-            dot.addEventListener('click', function() {
+            dot.addEventListener('click', function(e) {
+                e.stopPropagation(); // 防止事件冒泡
                 currentSlide = index;
                 updateSlide();
             });
@@ -983,20 +984,46 @@ function openGalleryViewer(gallery) {
     let touchStartY = 0;
     let touchEndY = 0;
     let touchStartTime = 0;
+    let isScrolling = false; // 标记是否正在滚动
     
     // 添加触摸事件监听器（主要用于移动端）
     function handleTouchStart(e) {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
         touchStartTime = new Date().getTime();
+        isScrolling = false; // 重置滚动状态
+        
+        // 阻止事件传播
+        e.stopPropagation();
     }
     
     function handleTouchMove(e) {
-        // 防止默认行为（如页面滚动）
+        // 阻止默认行为（如页面滚动）
         e.preventDefault();
+        // 阻止事件冒泡
+        e.stopPropagation();
+        
+        // 计算当前滑动距离和方向
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const diffX = currentX - touchStartX;
+        const diffY = currentY - touchStartY;
+        
+        // 如果垂直滚动距离大于水平距离，标记为垂直滚动
+        if (Math.abs(diffY) > Math.abs(diffX)) {
+            isScrolling = true;
+        }
     }
     
     function handleTouchEnd(e) {
+        // 阻止事件冒泡
+        e.stopPropagation();
+        
+        // 如果是垂直滚动，不处理幻灯片切换
+        if (isScrolling) {
+            return;
+        }
+        
         touchEndX = e.changedTouches[0].clientX;
         touchEndY = e.changedTouches[0].clientY;
         const touchEndTime = new Date().getTime();
@@ -1023,9 +1050,24 @@ function openGalleryViewer(gallery) {
     
     // 移动端添加触摸事件监听
     if (isMobile && gallery.photos && gallery.photos.length > 1) {
-        slider.addEventListener('touchstart', handleTouchStart, false);
+        // 为幻灯片容器添加触摸事件
+        slider.addEventListener('touchstart', handleTouchStart, { passive: false });
         slider.addEventListener('touchmove', handleTouchMove, { passive: false });
-        slider.addEventListener('touchend', handleTouchEnd, false);
+        slider.addEventListener('touchend', handleTouchEnd, { passive: false });
+        
+        // 为整个模态框添加触摸事件，确保覆盖所有区域
+        modal.addEventListener('touchstart', function(e) {
+            e.stopPropagation();
+        }, { passive: false });
+        
+        modal.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
+        
+        modal.addEventListener('touchend', function(e) {
+            e.stopPropagation();
+        }, { passive: false });
         
         // 添加滑动提示（仅在第一次加载时显示）
         if (!sessionStorage.getItem('gallerySwipeHintShown')) {
@@ -1067,13 +1109,15 @@ function openGalleryViewer(gallery) {
     // 显示模态框
     setTimeout(() => modal.classList.add('active'), 10);
 
-    // 阻止图库内部滚轮事件传播到外部
+    // 阻止图库内部所有事件传播到外部
+    // 阻止滚轮事件
     modal.addEventListener('wheel', function(e) {
+        e.preventDefault();
         e.stopPropagation();
     }, { passive: false });
     
-    // 阻止触摸滑动事件传播到外部
-    modal.addEventListener('touchmove', function(e) {
+    // 阻止模态框内的所有点击事件冒泡
+    modal.addEventListener('click', function(e) {
         e.stopPropagation();
     }, { passive: false });
 }
@@ -1095,7 +1139,8 @@ function openPhotoFullscreen(photo) {
     const closeBtn = document.createElement('div');
     closeBtn.className = 'fullscreen-close-btn';
     closeBtn.innerHTML = '×';
-    closeBtn.addEventListener('click', function() {
+    closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation(); // 阻止事件冒泡
         viewer.classList.add('closing');
         // 恢复页面滚动
         bodyStyle.overflow = originalOverflow;
@@ -1112,6 +1157,7 @@ function openPhotoFullscreen(photo) {
     img.src = photo.url;
     img.alt = photo.caption || '照片';
     img.className = 'fullscreen-image';
+    img.draggable = false; // 禁用拖拽
     
     // 创建图片信息
     const infoDiv = document.createElement('div');
@@ -1154,15 +1200,41 @@ function openPhotoFullscreen(photo) {
     
     document.addEventListener('keydown', handleKeyDown);
     
+    // 触摸事件变量
+    let touchStartX = 0;
+    let touchStartY = 0;
+    
+    // 添加触摸事件处理
+    function handleTouchStart(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        e.stopPropagation(); // 阻止事件冒泡
+    }
+    
+    function handleTouchMove(e) {
+        e.preventDefault(); // 阻止默认滚动行为
+        e.stopPropagation(); // 阻止事件冒泡
+    }
+    
+    function handleTouchEnd(e) {
+        e.stopPropagation(); // 阻止事件冒泡
+    }
+    
+    // 为查看器添加触摸事件监听
+    viewer.addEventListener('touchstart', handleTouchStart, { passive: false });
+    viewer.addEventListener('touchmove', handleTouchMove, { passive: false });
+    viewer.addEventListener('touchend', handleTouchEnd, { passive: false });
+    
     // 阻止查看器内部滚轮事件传播到外部
     viewer.addEventListener('wheel', function(e) {
+        e.preventDefault();
         e.stopPropagation();
     }, { passive: false });
     
-    // 阻止触摸滑动事件传播到外部
-    viewer.addEventListener('touchmove', function(e) {
+    // 阻止点击事件冒泡
+    viewer.addEventListener('click', function(e) {
         e.stopPropagation();
-    }, { passive: false });
+    });
 }
 
 // 重写setupEventListeners函数中的滚动相关部分
