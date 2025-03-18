@@ -7,6 +7,16 @@
     <link rel="icon" href="public/icon/icon-128x128.png">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- PWA相关配置 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff8fb1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="心动收藏馆">
+    <link rel="apple-touch-icon" href="public/icon/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="public/icon/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="public/icon/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="public/icon/icon-152x152.png">
     <!-- 添加加载动画样式 -->
     <style>
         .loading-overlay {
@@ -215,5 +225,19 @@
     
     <script src="config.js"></script>
     <script src="script.js"></script>
+    <!-- 注册Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker 注册成功:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker 注册失败:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html> 
