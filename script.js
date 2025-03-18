@@ -1657,6 +1657,15 @@ const musicPlayer = {
     currentSongIndex: 0,
     isUserInteractingWithPlayer: false, // 标记用户是否正在与播放器交互
     playlist: [], // 初始为空数组，将从config中加载
+    isNetworkOnline: true, // 网络状态标记
+    retryCount: 0, // 重试计数器
+    maxRetries: 2, // 最大重试次数
+    errorOccurred: false, // 是否发生过错误
+    
+    // 检查是否处于离线状态
+    checkNetworkStatus: function() {
+        return navigator.onLine;
+    },
     
     init: function() {
         // 从配置中加载播放列表
@@ -1679,6 +1688,50 @@ const musicPlayer = {
             ];
         }
 
+        // 检查网络状态
+        this.isNetworkOnline = this.checkNetworkStatus();
+        
+        // 添加网络状态变化监听
+        window.addEventListener('online', () => {
+            this.isNetworkOnline = true;
+            console.log('网络已连接，音乐播放功能已恢复');
+            
+            // 移除离线样式类
+            this.player.classList.remove('offline');
+            
+            // 网络恢复时重置错误状态，允许再次尝试播放
+            this.errorOccurred = false;
+            this.retryCount = 0;
+            
+            // 如果用户之前尝试播放但因离线失败，可以在这里显示提示
+            const notification = this.createNotification('网络已恢复，可以播放音乐了', 'success');
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        });
+        
+        window.addEventListener('offline', () => {
+            this.isNetworkOnline = false;
+            console.log('网络已断开，音乐可能无法播放');
+            
+            // 添加离线样式类
+            this.player.classList.add('offline');
+            
+            // 如果正在播放，暂停音乐并显示提示
+            if (this.isPlaying) {
+                this.pauseSong();
+                // 显示离线提示
+                const notification = this.createNotification('网络已断开，音乐播放已暂停', 'error');
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+        });
+
         // 确保音乐播放器的样式正确
         this.player.style.position = 'fixed';
         this.player.style.bottom = '20px';
@@ -1695,8 +1748,8 @@ const musicPlayer = {
         this.songNameElement = document.getElementById('songName');
         this.songArtistElement = document.getElementById('songArtist');
         
-        // 初始化播放器
-        this.loadSong(this.currentSongIndex);
+        // 初始化播放器 - 预先显示信息但不加载音乐
+        this.updateSongInfo(this.currentSongIndex);
         
         // 确保播放器在正确位置后再显示
         setTimeout(() => {
@@ -1768,9 +1821,53 @@ const musicPlayer = {
             this.nextSong();
         });
         
-        this.audio.addEventListener('error', () => {
-            console.error('音频加载失败，尝试下一首');
-            this.nextSong();
+        this.audio.addEventListener('error', (e) => {
+            const error = e.target.error;
+            console.error('音频加载失败:', error ? error.message : '未知错误');
+            
+            // 如果网络离线，显示提示
+            if (!this.isNetworkOnline) {
+                this.pauseSong();
+                const notification = this.createNotification('当前处于离线状态，无法播放音乐', 'error');
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+                return;
+            }
+            
+            // 增加重试计数
+            this.retryCount++;
+            
+            // 检查是否已达到最大重试次数
+            if (this.retryCount <= this.maxRetries) {
+                console.log(`音频加载失败，正在进行第 ${this.retryCount} 次重试...`);
+                
+                // 延迟一小段时间后重试
+                setTimeout(() => {
+                    // 仅重试当前歌曲
+                    this.retrySong();
+                }, 1000);
+            } else {
+                console.error(`已达到最大重试次数 (${this.maxRetries})，停止重试`);
+                this.pauseSong();
+                this.errorOccurred = true;
+                
+                // 显示错误通知
+                const notification = this.createNotification('音乐加载失败，请稍后再试', 'error');
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+        });
+        
+        // 音频加载成功时重置错误计数
+        this.audio.addEventListener('canplay', () => {
+            this.retryCount = 0;
+            this.errorOccurred = false;
         });
         
         // 添加窗口调整大小时重置位置的监听器
@@ -1883,21 +1980,83 @@ const musicPlayer = {
         });
     },
     
-    loadSong: function(index) {
+    // 更新歌曲信息但不加载歌曲
+    updateSongInfo: function(index) {
         const song = this.playlist[index];
         
         // 更新歌曲名和歌手名
-        const songNameElement = document.getElementById('songName');
-        const songArtistElement = document.getElementById('songArtist');
+        if (this.songNameElement) {
+            this.songNameElement.textContent = song.name;
+            this.checkTextOverflow(this.songNameElement);
+        }
         
-        songNameElement.textContent = song.name;
-        songArtistElement.textContent = song.artist;
+        if (this.songArtistElement) {
+            this.songArtistElement.textContent = song.artist;
+            this.checkTextOverflow(this.songArtistElement);
+        }
+    },
+    
+    // 加载并准备播放歌曲
+    loadSong: function(index) {
+        // 如果发生过错误且用户未主动触发，则跳过加载
+        if (this.errorOccurred && !this.isUserInitiated) {
+            return;
+        }
         
-        // 检查文本长度并添加滚动效果
-        this.checkTextOverflow(songNameElement);
-        this.checkTextOverflow(songArtistElement);
+        // 如果网络离线，则显示提示但不加载
+        if (!this.isNetworkOnline) {
+            this.updateSongInfo(index);
+            const notification = this.createNotification('当前处于离线状态，无法播放音乐', 'error');
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+            return;
+        }
         
+        const song = this.playlist[index];
+        this.updateSongInfo(index);
+        
+        // 重置重试计数
+        this.retryCount = 0;
+        
+        // 开始加载歌曲
+        console.log(`加载歌曲: ${song.name}`);
         this.audio.src = song.url;
+        
+        // 预加载
+        this.audio.load();
+    },
+    
+    // 重试当前歌曲
+    retrySong: function() {
+        const song = this.playlist[this.currentSongIndex];
+        if (!song) return;
+        
+        console.log(`重试加载歌曲: ${song.name}`);
+        
+        // 重新设置src以触发新的请求
+        this.audio.src = song.url;
+        this.audio.load();
+        
+        // 如果之前是播放状态，则继续播放
+        if (this.isPlaying) {
+            this.audio.play().catch(err => {
+                console.error('重试播放失败:', err);
+            });
+        }
+    },
+    
+    // 创建通用通知
+    createNotification: function(message, type = 'info') {
+        const id = `music-notification-${Date.now()}`;
+        const notification = document.createElement('div');
+        notification.id = id;
+        notification.className = `music-notification ${type}`;
+        notification.textContent = message;
+        
+        return notification;
     },
     
     checkTextOverflow: function(element) {
@@ -1937,6 +2096,27 @@ const musicPlayer = {
     },
     
     playSong: function() {
+        // 如果在离线状态，显示提示并返回
+        if (!this.isNetworkOnline) {
+            const notification = this.createNotification('当前处于离线状态，无法播放音乐', 'error');
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+            return;
+        }
+        
+        // 如果之前有错误，重置并重新加载
+        if (this.errorOccurred) {
+            this.errorOccurred = false;
+            this.retryCount = 0;
+            this.loadSong(this.currentSongIndex);
+        }
+        
+        // 标记用户主动触发的播放
+        this.isUserInitiated = true;
+        
         this.player.classList.add('playing');
         // 更新暂停图标
         this.playPauseBtn.innerHTML = `
@@ -1946,7 +2126,30 @@ const musicPlayer = {
             </svg>
         `;
         this.isPlaying = true;
-        this.audio.play();
+        
+        // 延迟播放以确保音频已加载
+        setTimeout(() => {
+            this.audio.play().catch(err => {
+                console.error('播放失败:', err);
+                
+                // 如果播放失败但并非因为网络问题，可能需要重新加载歌曲
+                if (this.isNetworkOnline && this.retryCount === 0) {
+                    console.log('尝试重新加载歌曲');
+                    this.loadSong(this.currentSongIndex);
+                    this.audio.play().catch(e => {
+                        console.error('再次播放失败:', e);
+                        this.pauseSong();
+                    });
+                } else {
+                    this.pauseSong();
+                }
+            });
+        }, 50);
+        
+        // 重置用户主动触发标记
+        setTimeout(() => {
+            this.isUserInitiated = false;
+        }, 1000);
     },
     
     pauseSong: function() {
@@ -1958,36 +2161,70 @@ const musicPlayer = {
             </svg>
         `;
         this.isPlaying = false;
-        this.audio.pause();
+        
+        // 暂停音频
+        try {
+            this.audio.pause();
+        } catch (err) {
+            console.error('暂停失败:', err);
+        }
     },
     
     togglePlay: function() {
         if (this.isPlaying) {
             this.pauseSong();
         } else {
+            // 如果未加载歌曲或之前有错误，先加载歌曲
+            if (!this.audio.src || this.audio.src === 'about:blank' || this.errorOccurred) {
+                this.loadSong(this.currentSongIndex);
+            }
             this.playSong();
         }
     },
     
     nextSong: function() {
+        // 重置错误状态和重试计数
+        this.errorOccurred = false;
+        this.retryCount = 0;
+        
+        // 更新索引
         this.currentSongIndex++;
         if (this.currentSongIndex >= this.playlist.length) {
             this.currentSongIndex = 0;
         }
-        this.loadSong(this.currentSongIndex);
-        if (this.isPlaying) {
-            this.playSong();
+        
+        // 如果网络在线，加载并播放
+        if (this.isNetworkOnline) {
+            this.loadSong(this.currentSongIndex);
+            if (this.isPlaying) {
+                this.playSong();
+            }
+        } else {
+            // 如果离线，仅更新信息
+            this.updateSongInfo(this.currentSongIndex);
         }
     },
     
     prevSong: function() {
+        // 重置错误状态和重试计数
+        this.errorOccurred = false;
+        this.retryCount = 0;
+        
+        // 更新索引
         this.currentSongIndex--;
         if (this.currentSongIndex < 0) {
             this.currentSongIndex = this.playlist.length - 1;
         }
-        this.loadSong(this.currentSongIndex);
-        if (this.isPlaying) {
-            this.playSong();
+        
+        // 如果网络在线，加载并播放
+        if (this.isNetworkOnline) {
+            this.loadSong(this.currentSongIndex);
+            if (this.isPlaying) {
+                this.playSong();
+            }
+        } else {
+            // 如果离线，仅更新信息
+            this.updateSongInfo(this.currentSongIndex);
         }
     },
     
@@ -2025,50 +2262,6 @@ const musicPlayer = {
         } else {
             this.expand();
         }
-    },
-    
-    addEventListeners: function() {
-        // 播放器图标点击
-        this.musicIcon.addEventListener('click', () => {
-            if (this.player.classList.contains('expanded')) {
-                this.collapse();
-            } else {
-                this.expand();
-            }
-        });
-
-        // 播放/暂停按钮点击
-        this.playPauseBtn.addEventListener('click', () => {
-            if (this.isPlaying) {
-                this.pauseSong();
-            } else {
-                this.playSong();
-            }
-        });
-
-        // 上一首按钮点击
-        this.prevBtn.addEventListener('click', () => {
-            this.prevSong();
-        });
-
-        // 下一首按钮点击
-        this.nextBtn.addEventListener('click', () => {
-            this.nextSong();
-        });
-
-        // 歌曲结束时自动播放下一首
-        this.audio.addEventListener('ended', () => {
-            this.nextSong();
-        });
-        
-        // 窗口大小改变时重新检查文本溢出
-        window.addEventListener('resize', () => {
-            if (this.player.classList.contains('expanded') && 
-                this.songNameElement && this.songArtistElement) {
-                this.checkTextOverflow(this.songNameElement);
-                this.checkTextOverflow(this.songArtistElement);
-            }
-        });
     }
 };
 

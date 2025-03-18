@@ -48,8 +48,19 @@ self.addEventListener('activate', event => {
   );
 });
 
-// 请求拦截 - 缓存优先策略
+// 请求拦截 - 只处理非音乐请求
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  
+  // 检查是否是音乐请求，如果是则不拦截，直接交给浏览器处理
+  const isMusicRequest = url.href.includes('music.163.com') || url.href.includes('.mp3');
+  
+  if (isMusicRequest) {
+    // 音乐请求直接通过，不做任何拦截或缓存
+    return;
+  }
+  
+  // 处理其他非音乐请求
   event.respondWith(
     caches.match(event.request)
       .then(response => {
