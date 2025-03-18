@@ -21,15 +21,27 @@ var siteConfig = {
     // 图库设置 (新格式)
     photoGalleries: [
         {
-            title: '第一次约会',          // 图库标题
-            date: '2021-06-01',          // 图库日期
+            title: '一起吃吃吃！',          // 图库标题
+            date: '2025年~',          // 图库日期
             coverIndex: 0,               // 封面图片索引，默认为0
-            description: '第一次见面的美好回忆', // 可选描述
+            description: '美味的食物当然要记录下来啦', // 可选描述
             photos: [
                 {
-                    url: 'https://picsum.photos/seed/photo1/600/800',
-                    caption: '咖啡厅里的笑容'
-                }
+                    url: 'public/images/eat/冒菜.png',
+                    caption: '冒菜！冒菜！'
+                },
+                {
+                    url: 'public/images/eat/一起吃冒菜.png',
+                    caption: '刻意摆拍组'
+                },
+                {
+                    url: 'public/images/eat/肥姨妈螺蛳粉.png',
+                    caption: 'chou~chou~的螺蛳粉'
+                },
+                {
+                    url: 'public/images/eat/一起吃肥姨妈.png',
+                    caption: '两个吃完螺蛳粉的chou人'
+                },
             ]
         },
         {

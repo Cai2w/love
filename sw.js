@@ -17,6 +17,10 @@ const urlsToCache = [
   '/public/icon/icon-512x512.png',
   '/public/icon/icon-72x72.png',
   '/public/icon/icon-96x96.png',
+  '/public/images/eat/冒菜.png',
+  '/public/images/eat/一起吃冒菜.png',
+  '/public/images/eat/肥姨妈螺蛳粉.png',
+  '/public/images/eat/一起吃肥姨妈.png',
   'https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;700&display=swap'
 ];
 
