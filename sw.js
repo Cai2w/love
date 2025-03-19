@@ -59,8 +59,11 @@ self.addEventListener('fetch', event => {
   // 检查是否是音乐请求，如果是则不拦截，直接交给浏览器处理
   const isMusicRequest = url.href.includes('music.163.com') || url.href.includes('.mp3');
   
-  if (isMusicRequest) {
-    // 音乐请求直接通过，不做任何拦截或缓存
+  // 检查URL协议是否为http或https，跳过chrome-extension等不支持的协议
+  const isUnsupportedScheme = !url.protocol.startsWith('http');
+  
+  if (isMusicRequest || isUnsupportedScheme) {
+    // 音乐请求或不支持的协议直接通过，不做任何拦截或缓存
     return;
   }
   
