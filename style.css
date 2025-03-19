@@ -462,9 +462,12 @@ body {
     }
     
     .photo-card {
-        height: 350px; /* 固定高度，使照片更高更醒目 */
+        height: 350px; /* 固定高度，使照片更醒目 */
         transform: translateY(0) scale(0.98);
         animation-duration: 0.4s;
+        /* 允许过渡效果 - 只用于边框颜色变化 */
+        transition: border-color 0.15s ease !important;
+        border: 1px solid rgba(255, 255, 255, 0.08);
     }
     
     /* 自定义手机端动画 */
@@ -479,15 +482,28 @@ body {
         }
     }
     
-    /* 手机端悬停效果调整 */
+    /* 完全禁用移动端hover效果 */
     .photo-card:hover {
-        transform: translateY(-5px) scale(1);
+        transform: none !important;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3) !important;
+        z-index: 5;
     }
     
-    /* 在滚动时显示照片信息，无需悬停 */
+    /* 禁用hover时的照片放大效果 */
+    .photo-card:hover img {
+        transform: none !important;
+        filter: brightness(1) contrast(1) !important;
+    }
+    
+    /* 禁用hover时的边框渐变效果 */
+    .photo-card:hover::before {
+        opacity: 0 !important;
+    }
+    
+    /* 确保照片信息始终显示 */
     .photo-info {
-        transform: translateY(0);
-        opacity: 0.9;
+        transform: translateY(0) !important;
+        opacity: 0.9 !important;
         padding: 15px;
         background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
     }
@@ -498,16 +514,29 @@ body {
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
     }
     
-    /* 显示照片标签 */
+    /* 始终显示照片标签 */
     .photo-tag {
-        transform: translateY(0);
-        opacity: 0.9;
+        transform: translateY(0) !important;
+        opacity: 0.9 !important;
     }
     
-    /* 强化移动端的触摸反馈 */
+    /* 移动端照片卡片点击效果 - 添加柔和的粉红色边框效果 */
     .photo-card:active {
-        transform: scale(0.98);
-        transition: transform 0.2s;
+        transform: none !important;
+        transition: none !important;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 143, 177, 0.7) !important; /* 更细的边框，半透明效果 */
+    }
+    
+    /* 禁用hover时的边框效果 */
+    .photo-card:hover .photo-border {
+        opacity: 0 !important;
+    }
+    
+    /* 禁用hover时的日期戳效果 */
+    .photo-card:hover .photo-date-stamp {
+        opacity: 0.8 !important;
+        transform: none !important;
     }
 }
 
@@ -2049,20 +2078,28 @@ html, body {
     .gallery-card {
         min-height: 210px;
         height: auto;
+        /* 允许过渡效果 - 只用于边框颜色变化 */
+        transition: border-color 0.15s ease !important;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    /* 重要：移动端禁用hover效果，防止滑动时闪烁 */
+    /* 完全禁用hover效果 */
     .gallery-card:hover {
-        transform: none !important; /* 使用!important覆盖默认hover效果 */
+        transform: none !important;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
         border-color: rgba(255, 255, 255, 0.1) !important;
     }
     
-    /* 改为使用active状态（点击时）的效�?*/
+    /* 添加图库卡片的点击效果 - 柔和的粉红色边框 */
     .gallery-card:active {
-        transform: translateY(-3px) !important;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25) !important;
-        border-color: rgba(255, 157, 209, 0.5) !important;
+        transform: none !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+        border: 1px solid rgba(255, 143, 177, 0.7) !important; /* 更细的边框，半透明效果 */
+    }
+    
+    /* 禁用封面图片的hover效果 */
+    .gallery-card:hover .gallery-cover {
+        transform: none !important;
     }
     
     .gallery-photo-container {
