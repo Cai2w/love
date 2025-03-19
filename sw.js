@@ -13,13 +13,14 @@ const urlsToCache = [
   '/config.js', 
   '/manifest.json',
   '/sw.js',
+  '/public/icon/icon-72x72.png',
+  '/public/icon/icon-96x96.png',
   '/public/icon/icon-128x128.png',
   '/public/icon/icon-144x144.png',
   '/public/icon/icon-152x152.png',
   '/public/icon/icon-192x192.png',
   '/public/icon/icon-384x384.png',
-  '/public/icon/icon-512x512.png',
-  '/public/icon/maskable_icon.png'
+  '/public/icon/icon-512x512.png'
 ];
 
 // 安装事件 - 创建缓存
@@ -30,7 +31,15 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('[Service Worker] 缓存资源中');
-        return cache.addAll(urlsToCache);
+        return Promise.all(
+          urlsToCache.map(url => {
+            return cache.add(url).catch(err => {
+              console.error('无法缓存资源:', url, err);
+              // 继续执行而不中断整个过程
+              return Promise.resolve();
+            });
+          })
+        );
       })
       .then(() => {
         console.log('[Service Worker] 资源缓存完成');
