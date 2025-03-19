@@ -1859,7 +1859,7 @@ html, body {
     display: flex;
     flex-direction: column;
     justify-content: center; /* 保持居中对齐 */
-    flex: 1 1 auto; /* 允许伸缩，自动填充剩余空间 */
+    flex: 0 0 auto; /* 修改为不拉伸，使用自身高度 */
 }
 
 .gallery-title {
@@ -2112,6 +2112,7 @@ html, body {
         padding: 6px 10px;
         min-height: 40px; /* 改为最小高度 */
         height: auto; /* 允许自动扩展 */
+        flex: 0 0 auto; /* 修改为不拉伸，使用自身高度 */
     }
     
     .gallery-title {
@@ -2147,6 +2148,7 @@ html, body {
         min-height: 40px; /* 改为最小高度 */
         height: auto; /* 允许自动扩展 */
         padding: 5px 8px;
+        flex: 0 0 auto; /* 修改为不拉伸，使用自身高度 */
     }
     
     .gallery-title {
