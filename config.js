@@ -44,86 +44,86 @@ var siteConfig = {
                 },
             ]
         },
-        {
-            title: '一起看日落',
-            date: '2021-07-23',
-            coverIndex: 0,
-            photos: [
-                {
-                    url: 'https://picsum.photos/seed/photo2/600/800',
-                    caption: '海边的夕阳'
-                },
-                {
-                    url: 'https://picsum.photos/seed/photo8/600/800',
-                    caption: '牵手瞬间'
-                }
-            ]
-        },
-        {
-            title: '第一次旅行',
-            date: '2021-08-15',
-            coverIndex: 1,  // 使用第二张照片作为封面
-            description: '去往那个我们一直想去的地方',
-            photos: [
-                {
-                    url: 'https://picsum.photos/seed/photo3/600/800',
-                    caption: '山顶的合影'
-                },
-                {
-                    url: 'https://picsum.photos/seed/photo9/600/800',
-                    caption: '我们的背影'
-                },
-                {
-                    url: 'https://picsum.photos/seed/photo10/600/800',
-                    caption: '酒店的窗外'
-                }
-            ]
-        },
-        {
-            title: '崔崔的生日',
-            date: '2021-11-28',
-            coverIndex: 0,
-            photos: [
-                {
-                    url: 'https://picsum.photos/seed/photo4/600/800',
-                    caption: '生日蛋糕'
-                },
-                {
-                    url: 'https://picsum.photos/seed/photo11/600/800',
-                    caption: '吹蜡烛的瞬间'
-                }
-            ]
-        },
-        {
-            title: '圣诞节的惊喜',
-            date: '2021-12-25',
-            coverIndex: 0,
-            photos: [
-                {
-                    url: 'https://picsum.photos/seed/photo5/600/800',
-                    caption: '圣诞树下的礼物'
-                }
-            ]
-        },
-        {
-            title: '一周年纪念日',
-            date: '2022-06-01',
-            coverIndex: 0,
-            photos: [
-                {
-                    url: 'https://picsum.photos/seed/photo6/600/800',
-                    caption: '烛光晚餐'
-                },
-                {
-                    url: 'https://picsum.photos/seed/photo12/600/800',
-                    caption: '交换礼物'
-                },
-                {
-                    url: 'https://picsum.photos/seed/photo13/600/800',
-                    caption: '甜蜜一刻'
-                }
-            ]
-        }
+        // {
+        //     title: '一起看日落',
+        //     date: '2021-07-23',
+        //     coverIndex: 0,
+        //     photos: [
+        //         {
+        //             url: 'https://picsum.photos/seed/photo2/600/800',
+        //             caption: '海边的夕阳'
+        //         },
+        //         {
+        //             url: 'https://picsum.photos/seed/photo8/600/800',
+        //             caption: '牵手瞬间'
+        //         }
+        //     ]
+        // },
+        // {
+        //     title: '第一次旅行',
+        //     date: '2021-08-15',
+        //     coverIndex: 1,  // 使用第二张照片作为封面
+        //     description: '去往那个我们一直想去的地方',
+        //     photos: [
+        //         {
+        //             url: 'https://picsum.photos/seed/photo3/600/800',
+        //             caption: '山顶的合影'
+        //         },
+        //         {
+        //             url: 'https://picsum.photos/seed/photo9/600/800',
+        //             caption: '我们的背影'
+        //         },
+        //         {
+        //             url: 'https://picsum.photos/seed/photo10/600/800',
+        //             caption: '酒店的窗外'
+        //         }
+        //     ]
+        // },
+        // {
+        //     title: '崔崔的生日',
+        //     date: '2021-11-28',
+        //     coverIndex: 0,
+        //     photos: [
+        //         {
+        //             url: 'https://picsum.photos/seed/photo4/600/800',
+        //             caption: '生日蛋糕'
+        //         },
+        //         {
+        //             url: 'https://picsum.photos/seed/photo11/600/800',
+        //             caption: '吹蜡烛的瞬间'
+        //         }
+        //     ]
+        // },
+        // {
+        //     title: '圣诞节的惊喜',
+        //     date: '2021-12-25',
+        //     coverIndex: 0,
+        //     photos: [
+        //         {
+        //             url: 'https://picsum.photos/seed/photo5/600/800',
+        //             caption: '圣诞树下的礼物'
+        //         }
+        //     ]
+        // },
+        // {
+        //     title: '一周年纪念日',
+        //     date: '2022-06-01',
+        //     coverIndex: 0,
+        //     photos: [
+        //         {
+        //             url: 'https://picsum.photos/seed/photo6/600/800',
+        //             caption: '烛光晚餐'
+        //         },
+        //         {
+        //             url: 'https://picsum.photos/seed/photo12/600/800',
+        //             caption: '交换礼物'
+        //         },
+        //         {
+        //             url: 'https://picsum.photos/seed/photo13/600/800',
+        //             caption: '甜蜜一刻'
+        //         }
+        //     ]
+        // }
     ],
     
     // 照片设置 (保留以保持向后兼容，但不再使用)
