@@ -42,41 +42,65 @@ var siteConfig = {
                     url: 'public/images/eat/一起吃肥姨妈.png',
                     caption: '两个吃完螺蛳粉的chou人'
                 },
+                {
+                    url: 'public/images/eat/潮汕牛肉1.png',
+                    caption: '潮汕牛肉火锅'
+                },
+                {
+                    url: 'public/images/eat/潮汕牛肉2.png',
+                    caption: '潮汕牛肉火锅'
+                },
+                {
+                    url: 'public/images/eat/冰煮羊1.png',
+                    caption: '冰煮羊'
+                },
+                {
+                    url: 'public/images/eat/冰煮羊2.png',
+                    caption: '冰煮羊'
+                },
             ]
         },
         {
-            title: '一起看日落',
-            date: '2021-07-23',
+            title: '潭柘寺之行',
+            date: '2025-03-23',
             coverIndex: 0,
             photos: [
                 {
-                    url: 'https://picsum.photos/seed/photo2/600/800',
-                    caption: '海边的夕阳'
+                    url: 'public/images/潭柘寺/合照.png',
+                    caption: '出自良良之手'
                 },
                 {
-                    url: 'https://picsum.photos/seed/photo8/600/800',
-                    caption: '牵手瞬间'
+                    url: 'public/images/潭柘寺/娇羞.png',
+                    caption: '王老师也是拍出美照了'
+                },
+                {
+                    url: 'public/images/潭柘寺/梨树院.png',
+                    caption: ''
+                },
+                {
+                    url: 'public/images/潭柘寺/相册.png',
+                    caption: ''
+                },
+                {
+                    url: 'public/images/潭柘寺/背影.png',
+                    caption: '回去吃烤肉自助喽'
                 }
             ]
         },
         {
-            title: '第一次旅行',
-            date: '2021-08-15',
-            coverIndex: 1,  // 使用第二张照片作为封面
-            description: '去往那个我们一直想去的地方',
+            title: '猫咖',
+            date: '2025-03-29',
+            coverIndex: 0,  // 使用第二张照片作为封面
+            description: '猫咖猫咖',
             photos: [
                 {
-                    url: 'https://picsum.photos/seed/photo3/600/800',
-                    caption: '山顶的合影'
+                    url: 'public/images/猫咖/撸猫.png',
+                    caption: '被AI拯救的照片'
                 },
                 {
-                    url: 'https://picsum.photos/seed/photo9/600/800',
-                    caption: '我们的背影'
+                    url: 'public/images/猫咖/合照.png',
+                    caption: ''
                 },
-                {
-                    url: 'https://picsum.photos/seed/photo10/600/800',
-                    caption: '酒店的窗外'
-                }
             ]
         },
         {
@@ -167,6 +191,7 @@ var siteConfig = {
         // 初始愿望
         initialWishes: [
             { text: '猫咖！猫咖！', completed: true, date: '2025-03-08' },
+            { text: '潭柘寺之行', completed: true, date: '2025-03-23' },
             { text: '一起去玉渊潭公园', completed: false },
             { text: '酉之VogueBar 微醺时刻~', completed: false},
             { text: '一起去吃驻京办！', completed: false },
