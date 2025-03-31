@@ -1978,6 +1978,169 @@ const musicPlayer = {
                 }
             });
         });
+        
+        // 添加音频状态恢复机制
+        this.setupAudioRecovery();
+    },
+    
+    // 设置音频恢复机制，防止PWA长时间运行后音频对象失效
+    setupAudioRecovery: function() {
+        // 每30分钟检查一次音频对象状态
+        setInterval(() => {
+            console.log('执行音频对象状态检查...');
+            
+            // 检查音频对象是否正常
+            if (this.audio && typeof this.audio.canPlayType !== 'function') {
+                console.log('检测到音频对象异常，尝试恢复...');
+                
+                // 重新创建音频对象
+                this.recreateAudioObject();
+            } else {
+                // 正常状态下也执行一次预加载，保持活跃
+                if (this.isNetworkOnline && !this.errorOccurred) {
+                    console.log('音频对象正常，执行预加载刷新');
+                    this.refreshAudioSource();
+                }
+            }
+        }, 30 * 60 * 1000); // 30分钟
+        
+        // 页面可见性变化时也检查音频状态
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('页面变为可见，检查音频状态');
+                
+                // 如果之前有错误或长时间未操作，尝试恢复
+                if (this.errorOccurred || !this.audio.src || this.audio.src === 'about:blank') {
+                    this.recreateAudioObject();
+                } else if (this.isPlaying) {
+                    // 如果应该在播放状态，确保真的在播放
+                    this.refreshAudioSource();
+                }
+            }
+        });
+    },
+    
+    // 重新创建音频对象
+    recreateAudioObject: function() {
+        console.log('重新创建音频对象');
+        
+        // 保存当前状态
+        const wasPlaying = this.isPlaying;
+        const currentTime = this.audio ? (this.audio.currentTime || 0) : 0;
+        const currentSong = this.playlist[this.currentSongIndex];
+        
+        try {
+            // 销毁旧的音频对象
+            if (this.audio) {
+                this.audio.onended = null;
+                this.audio.onerror = null;
+                this.audio.oncanplay = null;
+                this.audio.pause();
+                this.audio.src = '';
+                this.audio.load();
+            }
+            
+            // 创建新的音频对象
+            this.audio = new Audio();
+            
+            // 重新添加事件监听
+            this.audio.addEventListener('ended', () => {
+                this.nextSong();
+            });
+            
+            this.audio.addEventListener('error', (e) => {
+                const error = e.target.error;
+                console.error('音频加载失败:', error ? error.message : '未知错误');
+                
+                // 如果网络离线，显示提示
+                if (!this.isNetworkOnline) {
+                    this.pauseSong();
+                    const notification = this.createNotification('当前处于离线状态，无法播放音乐', 'error');
+                    document.body.appendChild(notification);
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => notification.remove(), 300);
+                    }, 3000);
+                    return;
+                }
+                
+                // 增加重试计数
+                this.retryCount++;
+                
+                // 检查是否已达到最大重试次数
+                if (this.retryCount <= this.maxRetries) {
+                    console.log(`音频加载失败，正在进行第 ${this.retryCount} 次重试...`);
+                    
+                    // 延迟一小段时间后重试
+                    setTimeout(() => {
+                        // 仅重试当前歌曲
+                        this.retrySong();
+                    }, 1000);
+                } else {
+                    console.error(`已达到最大重试次数 (${this.maxRetries})，停止重试`);
+                    this.pauseSong();
+                    this.errorOccurred = true;
+                    
+                    // 显示错误通知
+                    const notification = this.createNotification('音乐加载失败，请稍后再试', 'error');
+                    document.body.appendChild(notification);
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => notification.remove(), 300);
+                    }, 3000);
+                }
+            });
+            
+            // 音频加载成功时重置错误计数
+            this.audio.addEventListener('canplay', () => {
+                this.retryCount = 0;
+                this.errorOccurred = false;
+            });
+            
+            // 重新加载当前歌曲
+            if (currentSong) {
+                const urlWithNoCacheParam = this.addNoCacheParam(currentSong.url);
+                this.audio.src = urlWithNoCacheParam;
+                this.audio.load();
+                console.log('重新加载音乐:', urlWithNoCacheParam);
+                
+                // 恢复播放状态
+                if (wasPlaying) {
+                    setTimeout(() => {
+                        this.audio.currentTime = currentTime;
+                        this.playSong();
+                    }, 100);
+                }
+            }
+            
+            // 重置错误状态
+            this.errorOccurred = false;
+            this.retryCount = 0;
+            
+            console.log('音频对象重建完成');
+        } catch (err) {
+            console.error('重建音频对象失败:', err);
+            this.errorOccurred = true;
+        }
+    },
+    
+    // 刷新音频源
+    refreshAudioSource: function() {
+        if (!this.isNetworkOnline || this.errorOccurred) return;
+        
+        const currentSong = this.playlist[this.currentSongIndex];
+        if (!currentSong) return;
+        
+        // 只在未播放状态刷新，避免干扰播放
+        if (!this.isPlaying) {
+            console.log('刷新音频源');
+            const urlWithNoCacheParam = this.addNoCacheParam(currentSong.url);
+            // 如果不同，则更新
+            if (this.audio.src !== urlWithNoCacheParam) {
+                this.audio.src = urlWithNoCacheParam;
+                this.audio.load();
+            }
+        }
     },
     
     // 更新歌曲信息但不加载歌曲
@@ -2021,12 +2184,37 @@ const musicPlayer = {
         // 重置重试计数
         this.retryCount = 0;
         
-        // 开始加载歌曲
+        // 开始加载歌曲 - 添加随机参数防止缓存
         console.log(`加载歌曲: ${song.name}`);
-        this.audio.src = song.url;
         
-        // 预加载
-        this.audio.load();
+        // 为网易云音乐链接添加时间戳参数，防止缓存问题
+        const urlWithNoCacheParam = this.addNoCacheParam(song.url);
+        this.audio.src = urlWithNoCacheParam;
+        
+        // 清除之前的音频缓存
+        if (this.audio && this.audio.load) {
+            try {
+                // 移除所有事件监听器
+                this.audio.oncanplay = null;
+                this.audio.onplaying = null;
+                this.audio.oncanplaythrough = null;
+                
+                // 重置音频对象
+                this.audio.removeAttribute('src');
+                this.audio.load();
+                
+                // 重新设置源并加载
+                this.audio.src = urlWithNoCacheParam;
+                this.audio.load();
+                
+                console.log('音频对象已重置并重新加载');
+            } catch (err) {
+                console.error('重置音频对象失败:', err);
+            }
+        }
+        
+        // 添加调试信息
+        console.log(`音乐URL: ${urlWithNoCacheParam}`);
     },
     
     // 重试当前歌曲
@@ -2036,16 +2224,43 @@ const musicPlayer = {
         
         console.log(`重试加载歌曲: ${song.name}`);
         
-        // 重新设置src以触发新的请求
-        this.audio.src = song.url;
-        this.audio.load();
+        // 为网易云音乐链接添加时间戳参数，防止缓存问题
+        const urlWithNoCacheParam = this.addNoCacheParam(song.url);
+        
+        // 清除之前的音频
+        if (this.audio) {
+            try {
+                // 移除之前的音频源
+                this.audio.removeAttribute('src');
+                this.audio.load();
+                
+                // 设置新的音频源
+                this.audio.src = urlWithNoCacheParam;
+                this.audio.load();
+                
+                console.log('音频重新加载完成，URL:', urlWithNoCacheParam);
+            } catch (err) {
+                console.error('重置音频过程中出错:', err);
+            }
+        }
         
         // 如果之前是播放状态，则继续播放
         if (this.isPlaying) {
-            this.audio.play().catch(err => {
-                console.error('重试播放失败:', err);
-            });
+            setTimeout(() => {
+                this.audio.play().catch(err => {
+                    console.error('重试播放失败:', err);
+                });
+            }, 100);
         }
+    },
+    
+    // 添加随机参数到URL防止缓存
+    addNoCacheParam: function(url) {
+        if (!url) return url;
+        
+        // 添加唯一时间戳参数
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}_nocache=${Date.now()}`;
     },
     
     // 创建通用通知

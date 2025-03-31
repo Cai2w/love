@@ -1,5 +1,5 @@
 // 缓存名称 - 更新版本号会强制更新所有缓存
-const CACHE_NAME = 'heart-collection-v2';
+const CACHE_NAME = 'heart-collection-v3';
 
 // 配置文件URL，用于检查更新
 const VERSION_CHECK_URL = '/config.js';
@@ -22,6 +22,9 @@ const urlsToCache = [
   '/public/icon/icon-384x384.png',
   '/public/icon/icon-512x512.png'
 ];
+
+// 音乐资源URL前缀，用于识别音乐资源
+const MUSIC_URL_PREFIX = 'https://music.163.com/song/media/outer/url';
 
 // 安装事件 - 创建缓存
 self.addEventListener('install', event => {
@@ -141,6 +144,11 @@ async function checkForUpdates() {
   }
 }
 
+// 判断是否为音乐资源URL
+function isMusicResource(url) {
+  return url.includes(MUSIC_URL_PREFIX);
+}
+
 // 响应网络请求
 self.addEventListener('fetch', event => {
   // 提取URL和请求方法
@@ -155,6 +163,12 @@ self.addEventListener('fetch', event => {
   // 处理config.js - 网络优先策略
   if (url.pathname.endsWith('/config.js')) {
     event.respondWith(networkFirstStrategy(event.request));
+    return;
+  }
+  
+  // 处理音乐资源 - 总是从网络获取，不进行缓存
+  if (isMusicResource(url.href)) {
+    event.respondWith(networkOnlyStrategy(event.request));
     return;
   }
   
@@ -191,6 +205,37 @@ async function networkFirstStrategy(request) {
     // 如果缓存也没有，返回错误页面
     console.error('[Service Worker] 无法提供资源:', request.url);
     return new Response('网络请求失败，且缓存中无此资源', { status: 503 });
+  }
+}
+
+// 网络专用策略 - 适用于音乐等需要最新资源的内容，不进行缓存
+async function networkOnlyStrategy(request) {
+  console.log('[Service Worker] 网络专用策略 (不缓存音乐资源):', request.url);
+  
+  try {
+    // 直接从网络获取，不进行缓存
+    const networkResponse = await fetch(request, {
+      // 添加随机参数，避免浏览器缓存
+      cache: 'no-store',
+      headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache, no-store' }
+    });
+    
+    if (!networkResponse.ok) {
+      throw new Error('网络请求失败');
+    }
+    
+    // 对于重定向，我们需要跟随重定向并返回最终的响应
+    if (networkResponse.redirected) {
+      console.log('[Service Worker] 检测到重定向，跟随重定向:', networkResponse.url);
+      // 返回重定向后的响应，但不缓存
+      return networkResponse;
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.error('[Service Worker] 音乐资源获取失败:', request.url, error);
+    // 对于音乐资源，如果网络请求失败，返回特定错误
+    return new Response('无法加载音乐资源，请检查网络连接', { status: 503 });
   }
 }
 
