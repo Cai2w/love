@@ -213,24 +213,31 @@ async function networkOnlyStrategy(request) {
   console.log('[Service Worker] 网络专用策略 (不缓存音乐资源):', request.url);
   
   try {
-    // 直接从网络获取，不进行缓存
+    // 禁用自动重定向，手动处理
     const networkResponse = await fetch(request, {
-      // 添加随机参数，避免浏览器缓存
+      redirect: 'manual', // 关键：禁止自动跟随重定向
       cache: 'no-store',
       headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache, no-store' }
     });
-    
+
+    // 处理 302 重定向
+    if (networkResponse.status === 302) {
+      const location = networkResponse.headers.get('Location');
+      console.log('[Service Worker] 检测到重定向:', location);
+
+      // 强制将重定向地址转为 HTTPS
+      const httpsUrl = new URL(location);
+      httpsUrl.protocol = 'https:'; // 覆盖协议
+
+      // 重新发起 HTTPS 请求（递归调用，避免循环）
+      return networkOnlyStrategy(new Request(httpsUrl.href, request));
+    }
+
+    // 处理其他非 200 状态码
     if (!networkResponse.ok) {
       throw new Error('网络请求失败');
     }
-    
-    // 对于重定向，我们需要跟随重定向并返回最终的响应
-    if (networkResponse.redirected) {
-      console.log('[Service Worker] 检测到重定向，跟随重定向:', networkResponse.url);
-      // 返回重定向后的响应，但不缓存
-      return networkResponse;
-    }
-    
+
     return networkResponse;
   } catch (error) {
     console.error('[Service Worker] 音乐资源获取失败:', request.url, error);
