@@ -1,5 +1,5 @@
 // 缓存名称 - 更新版本号会强制更新所有缓存
-const CACHE_NAME = 'heart-collection-v3';
+const CACHE_NAME = 'heart-collection-v4';
 
 // 配置文件URL，用于检查更新
 const VERSION_CHECK_URL = '/config.js';
